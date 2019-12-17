@@ -79,7 +79,7 @@ We publish all received request's on our website;
 ## Credits
 
 - [Divine Niiquaye Ibok](https://divineniiquayeibok.com)
-- [All Contributors](https://biurad.com/projects/configmanager/contributers)
+- [All Contributors](https://biurad.com/projects/filemanager/contributers)
 
 ## Support us
 
