@@ -7,7 +7,7 @@ FileManager provides a powerful filesystem abstraction thanks to the wonderful [
 The recommended way to install FileManager is via Composer:
 
 ```bash
-composer require biurad/file-manager
+composer require biurad/biurad-filesystem
 ```
 
 It requires PHP version 7.0 and supports PHP up to 7.4. The dev-master version requires PHP 7.1.
