@@ -19,11 +19,16 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager;
 
+use BiuradPHP\FileManager\Config\FileConfig;
 use League\Flysystem\AdapterInterface;
-use Nette\Utils\Strings, League\Flysystem\Config;
 use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
-use Psr\Http\Message\UploadedFileInterface, Zend\Diactoros\UploadedFile;
-use League\Flysystem\{FileNotFoundException, Filesystem as LeagueFilesystem};
+use BiuradPHP\FileManager\Interfaces\StreamableInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use League\Flysystem\Cached\CachedAdapter;
+use Psr\Http\Message\StreamInterface;
+use League\Flysystem\Adapter\Local;
+use BiuradPHP\FileManager\Interfaces\StreamInterface as FlyStreamInterface;
+use League\Flysystem\{FileNotFoundException, Filesystem as LeagueFilesystem, Util};
 
 /**
  * Default abstraction for file management operations.
@@ -31,31 +36,57 @@ use League\Flysystem\{FileNotFoundException, Filesystem as LeagueFilesystem};
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @license   BSD-3-Clause
  */
-class FileManager extends LeagueFilesystem implements FileManagerInterface
+class FileManager extends LeagueFilesystem implements FileManagerInterface, StreamableInterface
 {
     /**
      * Default file mode for this manager.
      */
     const DEFAULT_FILE_MODE = 0664;
 
-    /**
-     * Files to be removed when component destructed.
-     *
-     * @var array
-     */
-    private $destructFiles = [];
+    /** @var FileConfig */
+    private $fileConfig;
 
     /**
      * Constructor.
      *
      * @param AdapterInterface $adapter
-     * @param Config|array     $config
+     * @param FileConfig|null    $config
      */
-    public function __construct(AdapterInterface $adapter, $config = null)
+    public function __construct(AdapterInterface $adapter, ?FileConfig $config = null)
     {
+        $this->fileConfig = $config;
         register_shutdown_function([$this, '__destruct']);
 
-        return parent::__construct($adapter, $config);
+        return parent::__construct($adapter, is_null($config) ? null : $config->getOptions());
+    }
+
+    /**
+     * Get a connection instance.
+     *
+     * @param string|null $name
+     *
+     * @return object|FileManagerInterface
+     */
+    public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface
+    {
+        $newFly = clone $this->fileConfig;
+        return $newFly->makeConnection($name);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createStream($key): FlyStreamInterface
+    {
+        if (($adapter = $this->getAdapter()) instanceof CachedAdapter) {
+            $adapter = $adapter->getAdapter();
+        }
+
+        if ($adapter instanceof StreamableInterface) {
+            return $this->adapter->createStream($key);
+        }
+
+        return new Streams\FlyStreamBuffer($this, $key);
     }
 
     /**
@@ -88,14 +119,16 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
     public function sharedGet($path)
     {
         $contents = '';
-        $path = $this->path($path);
+        $file = $this->path($path);
 
-        $handle = fopen($path, 'rb');
+        if (!$this->isLocalAdapter()) {
+            return $this->get($path)->getContents();
+        }
 
-        if ($handle) {
+        if ($handle = fopen($file, 'rb')) {
             try {
                 if (flock($handle, LOCK_SH)) {
-                    clearstatcache(true, $path);
+                    clearstatcache(true, $file);
 
                     $contents = fread($handle, $this->getSize($path) ?: 1);
 
@@ -119,7 +152,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
         }
 
         //Since default implementation is local we are allowed to do that
-        return $filename;
+        return $this->path($filename);
     }
 
     /**
@@ -137,7 +170,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function touch(string $filename, int $mode = null): bool
     {
-        if (!touch($filename)) {
+        if ($this->isLocalAdapter() && !touch($this->path($filename))) {
             return false;
         }
 
@@ -151,40 +184,45 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function extension(string $filename): string
     {
-        return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return strtolower(pathinfo($this->path($filename), PATHINFO_EXTENSION));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function md5(string $filename): string
+    public function checksum(string $filename): string
     {
-        if (!$this->has($filename)) {
+        if ($this->has($filename)) {
             throw new FileNotFoundException($filename);
         }
 
-        return md5_file($filename);
+        return md5($this->read($filename));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function path($path = '')
+    public function path(string $path = '')
     {
-        $path = $this->normalizePath($path);
+        if (($prefix = $this->getAdapter()) instanceof CachedAdapter) {
+            $prefix = $prefix->getAdapter();
+        }
 
-        return $this->getAdapter()->getPathPrefix() . $path;
+        return Util::normalizePath($prefix->getPathPrefix() . $path);
     }
 
     /**
-     * Convert the string to ASCII characters that are equivalent to the given name.
+     * Create the most normalized version for path to file or location.
      *
-     * @param  string  $name
+     * @param string $path        File or location path.
+     *
      * @return string
+     *
+     * @throws \LogicException
      */
-    protected function fallbackName($name)
+    public function normalizePath(string $path): string
     {
-        return str_replace('%', '', Strings::toAscii($name));
+        return Util::normalizePath($path);
     }
 
     /**
@@ -194,7 +232,11 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function isDirectory(string $filename): bool
     {
-        return is_dir($filename);
+        if (false !== $path = $this->getMetadata($filename)) {
+            return 'dir' === $path['type'];
+        }
+
+        return false;
     }
 
     /**
@@ -204,7 +246,23 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function isFile(string $filename): bool
     {
-        return is_file($filename);
+        if (false !== $path = $this->getMetadata($filename)) {
+            return 'file' === $path['type'];
+        }
+
+        return false;
+    }
+
+    /**
+     * Find path names matching a given pattern.
+     *
+     * @param  string  $pattern
+     * @param  int     $flags
+     * @return array
+     */
+    public function glob(string $pattern, int $flags = 0)
+    {
+        return glob($pattern, $flags);
     }
 
     /**
@@ -218,7 +276,11 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
             throw new FileNotFoundException($filename);
         }
 
-        return fileperms($filename) & 0777;
+        if ($this->isLocalAdapter()) {
+            return fileperms($this->path($filename)) ?? 0777;
+        }
+
+        return 33204;
     }
 
     /**
@@ -226,63 +288,14 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function setPermissions(string $filename, int $mode)
     {
-        if (is_dir($filename)) {
+        if ($this->isDirectory($filename)) {
             //Directories must always be executable (i.e. 664 for dir => 775)
-            $mode |= 0111;
+            $mode |= 16893;
+        } elseif (!$this->isLocalAdapter()) {
+            return false;
         }
 
-        return $this->getPermissions($filename) == $mode || chmod($filename, $mode);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function tempFilename(string $extension = '', string $location = null): string
-    {
-        if (empty($location)) {
-            $location = sys_get_temp_dir();
-        }
-
-        $filename = tempnam($location, 'bp_');
-
-        if (!empty($extension)) {
-            //I should find more original way of doing that
-            $this->rename($filename, $filename = "{$filename}.{$extension}");
-            $this->destructFiles[] = $filename;
-        }
-
-        return $filename;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function replace($path, $content)
-    {
-        // If the path already exists and is a symlink, get the real path...
-        clearstatcache(true, $path);
-
-        $path = realpath($path) ?: $path;
-
-        $tempPath = tempnam(dirname($path), basename($path));
-
-        // Fix permissions of tempPath because `tempnam()` creates it with permissions set to 0600...
-        chmod($tempPath, 0777 - umask());
-
-        file_put_contents($tempPath, $content);
-
-        $this->rename($tempPath, $path);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function normalizePath(string $path, bool $asDirectory = false): string
-    {
-        $path = str_replace(['//', '\\'], '/', $path);
-
-        //Potentially open links and ../ type directories?
-        return rtrim($path, '/') . ($asDirectory ? '/' : '');
+        return $this->getPermissions($filename) == $mode || chmod($this->path($filename), $mode);
     }
 
     /**
@@ -292,8 +305,8 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
      */
     public function relativePath(string $path, string $from): string
     {
-        $path = $this->normalizePath($path);
-        $from = $this->normalizePath($from);
+        $path = Util::normalizePath($path);
+        $from = Util::normalizePath($from);
 
         $from = explode('/', $from);
         $path = explode('/', $path);
@@ -333,14 +346,17 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
         // If the given contents is actually a file or uploaded file instance than we will
         // automatically store the file using a stream. This provides a convenient path
         // for the developer to store streams without managing them manually in code.
-        if (
-            $contents instanceof UploadedFile ||
-            $contents instanceof UploadedFileInterface
-        ) {
-            return $this->putFileAs($path, $contents, $contents->getClientFilename(), $options);
+        if ($contents instanceof UploadedFile) {
+            return $this->putFileAs($path, $contents, $contents->hashName(), $options);
         }
 
-        return parent::put($path, $contents, $config);
+        if ($contents instanceof StreamInterface) {
+            return $this->putStream($path, $contents->detach(), $options);
+        }
+
+        return is_resource($contents)
+                ? $this->putStream($path, $contents, $options)
+                : parent::put($path, $contents, $options);
     }
 
     /**
@@ -353,11 +369,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
         // Next, we will format the path of the file and store the file using a stream since
         // they provide better performance than alternatives. Once we write the file this
         // stream will get closed automatically by us so the developer doesn't have to.
-        $result = $this->put(
-            $path = trim($path . '/' . $name, '/'),
-            $stream,
-            $options
-        );
+        $result = $this->put($path = trim($path . '/' . $name, '/'), $stream, $options);
 
         if (is_resource($stream)) {
             fclose($stream);
@@ -414,14 +426,78 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface
     }
 
     /**
-     * Destruct every temporary file.
+     * Flush the Flysystem cache.
      *
-     * @throws FileNotFoundException
+     * @return void
      */
-    public function __destruct()
+    public function flushCache()
     {
-        foreach ($this->destructFiles as $filename) {
-            $this->delete($filename);
+        $adapter = $this->getAdapter();
+
+        if ($adapter instanceof CachedAdapter) {
+            $adapter->getCache()->flush();
         }
+    }
+
+    /**
+     * Get the returned value of a file.
+     *
+     * @param  string  $path
+     * @return mixed
+     *
+     * @throws \League\Flysystem\FileNotFoundException
+     */
+    public function getRequire($path)
+    {
+        if ($this->isFile($path)) {
+            return require $this->path($path);
+        }
+
+        throw new FileNotFoundException("File does not exist at path {$path}");
+    }
+
+    /**
+     * Require the given file once.
+     *
+     * @param  string  $file
+     * @return mixed
+     */
+    public function requireOnce($file)
+    {
+        require_once $this->path($file);
+    }
+
+    /**
+     * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
+     *
+     * @param  string  $target
+     * @param  string  $link
+     * @return void
+     */
+    public function createSymlink(string $target, string $link)
+    {
+        if (PHP_OS_FAMILY !== 'Windows') {
+            return symlink($this->path($target), $link);
+        }
+
+        $mode = $this->isDirectory($target) ? 'J' : 'H';
+
+        exec("mklink /{$mode} ".escapeshellarg($link).' '.escapeshellarg($this->path($target)));
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isLocalAdapter()
+    {
+        if (($adapter = $this->getAdapter()) instanceof CachedAdapter) {
+            $adapter = $adapter->getAdapter();
+        }
+
+        if ($adapter instanceof Local) {
+            return true;
+        }
+
+        return false;
     }
 }

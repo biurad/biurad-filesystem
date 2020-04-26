@@ -19,12 +19,16 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
-/**
- * Access to cloud storage . Does not provide full filesystem abstractions.
- *
- * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
- * @license   BSD-3-Clause
- */
-interface CloudManagerInterface extends FileManagerInterface
+interface CloudConnectionInterface
 {
+    public const DEFAULT_CLOUD = 'ftp';
+
+    /**
+     * Make a new flysystem instance.
+     *
+     * @param string $driver
+     *
+     * @return \BiuradPHP\FileManager\FileManager
+     */
+    public function makeConnection(string $driver = self::DEFAULT_CLOUD);
 }

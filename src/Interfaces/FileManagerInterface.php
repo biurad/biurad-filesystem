@@ -19,14 +19,15 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
+use BiuradPHP\FileManager\Config\FileConfig;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface as LeagueFilesystemInterface;
 
 /**
  * Access to hard drive or local store. Does not provide full filesystem abstractions.
  *
- * @author Divine Niiquaye <hello@biuhub.net>
- * @license MIT
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
+ * @license BSD-3-Clause
  */
 interface FileManagerInterface extends LeagueFilesystemInterface
 {
@@ -73,16 +74,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     public function move(string $filename, string $destination): bool;
 
     /**
-     * Write the contents of a file, replacing it atomically if it already exists.
-     *
-     * @param  string  $path
-     * @param  string  $content
-     *
-     * @return void
-     */
-    public function replace($path, $content);
-
-    /**
      * Get contents of a file with shared access.
      *
      * @param  string  $path
@@ -109,7 +100,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     public function extension(string $filename): string;
 
     /**
-     * Get file MD5 hash.
+     * Returns the checksum of the specified file's content.
      *
      * @param string $filename
      *
@@ -117,7 +108,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @throws FileNotFoundException
      */
-    public function md5(string $filename): string;
+    public function checksum(string $filename): string;
 
     /**
      * @param string $filename
@@ -155,31 +146,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     public function setPermissions(string $filename, int $mode);
 
     /**
-     * Return unique name of temporary (should be removed when interface implementation destructed)
-     * file in desired location.
-     *
-     * @param string $extension Desired file extension.
-     * @param string $location
-     *
-     * @return string
-     */
-    public function tempFilename(string $extension = '', string $location = null): string;
-
-    /*
-     * Move outside in a future versions.
-     */
-
-    /**
-     * Create the most normalized version for path to file or location.
-     *
-     * @param string $path        File or location path.
-     * @param bool   $asDirectory Path points to directory.
-     *
-     * @return string
-     */
-    public function normalizePath(string $path, bool $asDirectory = false): string;
-
-    /**
      * Get relative location based on absolute path.
      *
      * @param string $path Original file or directory location (to).
@@ -196,17 +162,32 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @return string
      */
-    public function path($path);
+    public function path(string $path);
 
     /**
-     * Store the uploaded file on the disk with a given name.
+     * Find path names matching a given pattern.
      *
-     * @param  string  $path
-     * @param  \Psr\Http\Message\UploadedFileInterface  $file
-     * @param  string  $name
-     * @param  array  $options
-     *
-     * @return string|false
+     * @param  string  $pattern
+     * @param  int     $flags
+     * @return array
      */
-    public function putFileAs($path, $file, $name, $options = []);
+    public function glob(string $pattern, int $flags = 0);
+
+    /**
+     * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
+     *
+     * @param  string  $target
+     * @param  string  $link
+     * @return void
+     */
+    public function createSymlink(string $target, string $link);
+
+    /**
+     * Get a connection instance.
+     *
+     * @param string|null $name
+     *
+     * @return object
+     */
+    public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface;
 }

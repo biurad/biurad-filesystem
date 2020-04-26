@@ -17,14 +17,7 @@ declare(strict_types=1);
  * @since     Version 0.1
  */
 
-namespace BiuradPHP\FileManager\Interfaces;
+namespace BiuradPHP\FileManager\Exception;
 
-interface StreamableInterface
-{
-    /**
-     * Create a new stream from path.
-     *
-     * @param string $key The path to use for stream.
-     */
-    public function createStream($key): StreamInterface;
-}
+class WrapperException extends \UnderflowException
+{}

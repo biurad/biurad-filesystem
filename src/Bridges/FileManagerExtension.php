@@ -20,13 +20,12 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Bridges;
 
 use Nette, BiuradPHP;
-use Nette\DI\ContainerBuilder;
-use League\Flysystem\AdapterInterface;
-use Nette\DI\Definitions\ServiceDefinition;
-use League\Flysystem\Cached\Storage\Memory as MemoryStore;
-use BiuradPHP\FileManager\Interfaces\CloudManagerInterface;
+use BiuradPHP\FileManager\FileCache;
+use Nette\DI\Definitions\Reference;
+use Nette\DI\Definitions\Statement;
+use BiuradPHP\FileManager\Config\FileConfig;
 
-class FileManagerExtension extends BiuradPHP\DependencyInjection\CompilerExtension
+class FileManagerExtension extends Nette\DI\CompilerExtension
 {
     /**
      * {@inheritDoc}
@@ -34,11 +33,11 @@ class FileManagerExtension extends BiuradPHP\DependencyInjection\CompilerExtensi
     public function getConfigSchema(): Nette\Schema\Schema
     {
         return Nette\Schema\Expect::structure([
-            'caching' => Nette\Schema\Expect::bool()->default(false),
-            'disk' => Nette\Schema\Expect::string()->default('local'),
-            'cloud' => Nette\Schema\Expect::string(),
-            'pools' => Nette\Schema\Expect::arrayOf('string|array'),
-        ])->otherItems('mixed');
+            'default' => Nette\Schema\Expect::string()->default(FileConfig::DEFAULT_DRIVER),
+            'stream_protocol' => Nette\Schema\Expect::string('flysystem'),
+            'caching' => Nette\Schema\Expect::array()->default([]),
+            'connections' => Nette\Schema\Expect::arrayOf('array')->required(),
+        ])->otherItems('mixed')->castTo('array');
     }
 
     /**
@@ -47,69 +46,27 @@ class FileManagerExtension extends BiuradPHP\DependencyInjection\CompilerExtensi
     public function loadConfiguration()
     {
         $builder = $this->getContainerBuilder();
-        $config = $this->config;
 
-        $local = $builder->addDefinition('filemanager')
-                ->setFactory(BiuradPHP\FileManager\FileManager::class);
-        $this->createDefault($local, $builder, $config->caching);
+        $builder->addDefinition($this->prefix('cache'))
+            ->setFactory(FileCache::class)
+            ->setArgument('config', $this->config['caching'])
+        ;
 
-        $cloud = $builder->addDefinition('filemanager.cloud')
-                ->setFactory('BiuradPHP\FileManager\Bridges\FileManagerExtension::cloudStorage');
-        $this->createCloud($cloud, $builder, $config->caching);
+        $builder->addDefinition($this->prefix('config'))
+            ->setFactory(FileConfig::class, [$this->config])
+        ;
 
-        foreach (FileManagerBridge::defaultPlugins() as $plugin) {
-            $local->addSetup('addPlugin', [$plugin]);
-            $cloud->addSetup('addPlugin', [$plugin]);
-        }
-    }
-
-    protected function createCloud(
-        ServiceDefinition $definition, ContainerBuilder $builder, bool $caching
-    ): void {
-        FileManagerBridge::of($this)
-            ->setConfig($this->config)
-            ->withDefault($this->config->cloud)
-            ->getDefinition('file.adapter.cloud');
-
-        if (false !== $caching) {
-            $builder->addDefinition('filesystem.cloud')
-                ->setFactory(\League\Flysystem\Cached\CachedAdapter::class)
-                ->setArguments(['@file.adapter.cloud', new MemoryStore]);
+        if (! $this->config['caching']['enable']) {
+            $builder->removeDefinition($this->prefix('cache'));
         }
 
-        $cloud = '@file.adapter.cloud';
-        if (isset($caching) && $builder->hasDefinition('filesystem.cloud')) {
-            $cloud = '@filesystem.cloud';
-        }
+        $builder->addDefinition($this->prefix('manager'))
+            ->setFactory(BiuradPHP\FileManager\FileManager::class)
+            ->setArgument(0, new Statement([new Reference($this->prefix('config')), 'getFileAdapter'], [$this->config['default']]))
+            ->addSetup(
+            'foreach (?->defaultPlugins() as $plugin) { ?->addPlugin($plugin); }', [new Reference($this->prefix('config')), '@self']
+        );
 
-        $definition->setArguments([$cloud]);
-    }
-
-    protected function createDefault(
-        ServiceDefinition $definition, ContainerBuilder $builder, bool $caching
-    ): void {
-        FileManagerBridge::of($this)
-            ->setConfig($this->config)
-            ->withDefault($this->config->disk)
-            ->getDefinition('file.adapter.local');
-
-        if (false !== $caching) {
-            $builder->addDefinition('filesystem.local')
-                ->setFactory(\League\Flysystem\Cached\CachedAdapter::class)
-                ->setArguments(['@file.adapter.local', new MemoryStore]);
-        }
-
-        $local = '@file.adapter.local';
-        if (isset($caching) && $builder->hasDefinition('filesystem.local')) {
-            $local = '@filesystem.local';
-        }
-
-        $definition->setArguments([$local]);
-    }
-
-
-    public static function cloudStorage(AdapterInterface $adapter, $config = null): CloudManagerInterface
-    {
-        return new class($adapter, $config) extends BiuradPHP\FileManager\FileManager implements CloudManagerInterface {};
+        $builder->addAlias('flysystem', $this->prefix('manager'));
     }
 }

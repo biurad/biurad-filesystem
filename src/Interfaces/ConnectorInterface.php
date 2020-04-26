@@ -19,12 +19,19 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
-interface StreamableInterface
+/**
+ * This is the connector interface.
+ *
+ * @author Graham Campbell <graham@alt-three.com>
+ */
+interface ConnectorInterface
 {
     /**
-     * Create a new stream from path.
+     * Establish a connection.
      *
-     * @param string $key The path to use for stream.
+     * @param array $config
+     *
+     * @return object|\League\Flysystem\AdapterInterface
      */
-    public function createStream($key): StreamInterface;
+    public function connect(array $config);
 }
