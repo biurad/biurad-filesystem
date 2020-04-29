@@ -1,4 +1,4 @@
-# FileManager for handling filesytem in php and cloud storage
+# FileManager for handling filesytem on local disk and cloud storage
 
 FileManager provides a powerful filesystem abstraction thanks to the wonderful [Flysystem](https://github.com/thephpleague/flysystem). PHP package by Frank de Jonge. The Flysystem integration provides simple to use drivers for working with local filesystems and Amazon S3. Even better, it's amazingly simple to switch between these storage options as the API remains the same for each system.
 
