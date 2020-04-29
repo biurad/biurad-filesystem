@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use Spatie\Dropbox\Client;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
@@ -36,7 +36,7 @@ class DropboxConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return \Spatie\FlysystemDropbox\DropboxAdapter
+     * @return DropboxAdapter
      */
     public function connect(array $config)
     {
@@ -52,17 +52,16 @@ class DropboxConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string[]
+     * @throws InvalidArgumentException
      */
     protected function getAuth(array $config)
     {
         if (!array_key_exists('token', $config)) {
-            throw new \InvalidArgumentException('The dropbox connector requires authentication.');
+            throw new InvalidArgumentException('The dropbox connector requires authentication.');
         }
 
-        return Arr::only($config, ['token']);
+        return array_intersect_key($config, array_flip(['token']));
     }
 
     /**
@@ -70,7 +69,7 @@ class DropboxConnector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return \Spatie\Dropbox\Client
+     * @return Client
      */
     protected function getClient(array $auth)
     {
@@ -90,16 +89,16 @@ class DropboxConnector implements ConnectorInterface
             $config['prefix'] = null;
         }
 
-        return Arr::only($config, ['prefix']);
+        return array_intersect_key($config, array_flip(['prefix']));
     }
 
     /**
      * Get the dropbox adapter.
      *
-     * @param \Spatie\Dropbox\Client $client
-     * @param string[]               $config
+     * @param Client $client
+     * @param string[] $config
      *
-     * @return \Spatie\FlysystemDropbox\DropboxAdapter
+     * @return DropboxAdapter
      */
     protected function getAdapter(Client $client, array $config)
     {

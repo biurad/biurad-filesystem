@@ -20,7 +20,6 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
 use League\Flysystem\WebDAV\WebDAVAdapter;
 use Sabre\DAV\Client;
 
@@ -71,16 +70,16 @@ class WebDavConnector implements ConnectorInterface
             $config['prefix'] = null;
         }
 
-        return Arr::only($config, ['prefix']);
+        return array_intersect_key($config, array_flip(['prefix']));
     }
 
     /**
      * Get the webdav adapter.
      *
-     * @param \Sabre\DAV\Client $client
-     * @param string[]          $config
+     * @param Client $client
+     * @param string[] $config
      *
-     * @return \League\Flysystem\WebDAV\WebDAVAdapter
+     * @return WebDAVAdapter
      */
     protected function getAdapter(Client $client, array $config)
     {

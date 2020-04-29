@@ -20,6 +20,8 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
 
 /**
  * This is the adapter connection factory class.
@@ -28,14 +30,16 @@ use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
  */
 class ConnectionFactory
 {
+    private static $adapters = [];
+
     /**
      * Establish an adapter connection.
      *
      * @param array $config
      *
-     * @return \League\Flysystem\AdapterInterface
+     * @return AdapterInterface
      */
-    public static function make(array $config)
+    public static function makeAdapter(array $config)
     {
         $name = isset($config['default']) ? $config['default'] : 'local';
 
@@ -47,12 +51,16 @@ class ConnectionFactory
      *
      * @param string $config
      *
-     * @throws \InvalidArgumentException
-     *
      * @return ConnectorInterface
+     * @throws InvalidArgumentException
      */
     public static function createConnector(?string $config)
     {
+        // Custom Adapters...
+        if (null !== $config && isset(self::$adapters[$config])) {
+            return self::$adapters[$config];
+        }
+
         switch ($config) {
             case 'awss3':
                 return new AwsS3Connector();
@@ -81,6 +89,18 @@ class ConnectionFactory
                 return new ZipConnector();
         }
 
-        throw new \InvalidArgumentException("Unsupported driver [{$config}].");
+        throw new InvalidArgumentException("Unsupported driver [{$config}].");
+    }
+
+    /**
+     * Add a new adapter to FIlemanager
+     *
+     * @param string $name
+     * @param ConnectorInterface $adapter
+     * @return void
+     */
+    public function addAdapter(string $name, ConnectorInterface $adapter): void
+    {
+        self::$adapters[$name] = $adapter;
     }
 }

@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use League\Flysystem\GridFS\GridFSAdapter;
 use MongoClient;
 
@@ -52,17 +52,16 @@ class GridFSConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string[]
+     * @throws InvalidArgumentException
      */
     protected function getAuth(array $config)
     {
         if (!array_key_exists('server', $config)) {
-            throw new \InvalidArgumentException('The gridfs connector requires server configuration.');
+            throw new InvalidArgumentException('The gridfs connector requires server configuration.');
         }
 
-        return Arr::only($config, ['server']);
+        return array_intersect_key($config, array_flip(['server']));
     }
 
     /**
@@ -70,7 +69,7 @@ class GridFSConnector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return \MongoClient
+     * @return MongoClient
      */
     protected function getClient(array $auth)
     {
@@ -90,16 +89,16 @@ class GridFSConnector implements ConnectorInterface
             throw new \InvalidArgumentException('The gridfs connector requires database configuration.');
         }
 
-        return Arr::only($config, ['database']);
+        return array_intersect_key($config, array_flip(['database']));
     }
 
     /**
      * Get the gridfs adapter.
      *
-     * @param \MongoClient $client
+     * @param MongoClient $client
      * @param string[]     $config
      *
-     * @return \League\Flysystem\GridFS\GridFSAdapter
+     * @return GridFSAdapter
      */
     protected function getAdapter(MongoClient $client, array $config)
     {

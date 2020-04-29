@@ -20,8 +20,10 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
+
+use function BiuradPHP\Support\array_get;
 
 /**
  * This is the local connector class.
@@ -35,7 +37,7 @@ class LocalConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return \League\Flysystem\Adapter\Local
+     * @return Local
      */
     public function connect(array $config)
     {
@@ -49,17 +51,17 @@ class LocalConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string[]
      */
     protected function getConfig(array $config)
     {
         if (!array_key_exists('path', $config)) {
-            throw new \InvalidArgumentException('The local connector requires path configuration.');
+            throw new InvalidArgumentException('The local connector requires path configuration.');
         }
 
-        return Arr::only($config, ['path', 'write_flags', 'link_handling', 'permissions']);
+        return array_intersect_key($config, array_flip(['path', 'write_flags', 'link_handling', 'permissions']));
     }
 
     /**
@@ -67,15 +69,15 @@ class LocalConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return \League\Flysystem\Adapter\Local
+     * @return Local
      */
     protected function getAdapter(array $config)
     {
         // Pull parameters from config and set defaults for optional values
         $path = $config['path'];
-        $writeFlags = Arr::get($config, 'write_flags', LOCK_EX);
-        $linkHandling = Arr::get($config, 'link_handling', Local::DISALLOW_LINKS);
-        $permissions = Arr::get($config, 'permissions', []);
+        $writeFlags = array_get($config, 'write_flags', LOCK_EX);
+        $linkHandling = array_get($config, 'link_handling', Local::DISALLOW_LINKS);
+        $permissions = array_get($config, 'permissions', []);
 
         return new Local($path, $writeFlags, $linkHandling, $permissions);
     }
