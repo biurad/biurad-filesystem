@@ -24,8 +24,6 @@ use BiuradPHP\FileManager\FileCache;
 use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
 use BiuradPHP\FileManager\Config\FileConfig;
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Nette\Schema\Expect;
 
 class FileManagerExtension extends Nette\DI\CompilerExtension
 {
@@ -35,12 +33,11 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     public function getConfigSchema(): Nette\Schema\Schema
     {
         return Nette\Schema\Expect::structure([
-            'default'           => Nette\Schema\Expect::string()->default(FileConfig::DEFAULT_DRIVER),
-            'stream_protocol'   => Nette\Schema\Expect::string('flysystem'),
-            'caching'           => Nette\Schema\Expect::array()->default([]),
-            'adapters'          => Nette\Schema\Expect::arrayOf(Expect::string())->nullable(),
-            'connections'       => Nette\Schema\Expect::arrayOf('array')->required(),
-        ])->castTo('array');
+            'default' => Nette\Schema\Expect::string()->default(FileConfig::DEFAULT_DRIVER),
+            'stream_protocol' => Nette\Schema\Expect::string('flysystem'),
+            'caching' => Nette\Schema\Expect::array()->default([]),
+            'connections' => Nette\Schema\Expect::arrayOf('array')->required(),
+        ])->otherItems('mixed')->castTo('array');
     }
 
     /**
@@ -49,18 +46,6 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     public function loadConfiguration()
     {
         $builder = $this->getContainerBuilder();
-
-        foreach ($this->config['adapters'] ?? [] as $key => $adapter) {
-            if ($builder->hasDefinition($adapter)) {
-                $adapter = new Reference($adapter);
-            } elseif (is_subclass_of($adapter, ConnectorInterface::class)) {
-                $adapter = new Statement($adapter);
-            }
-
-            $this->config['adapters'] = array_replace(
-                [$this->config['adapters'][$key] => $adapter], [$key, $adapter]
-            );
-        }
 
         $builder->addDefinition($this->prefix('cache'))
             ->setFactory(FileCache::class)

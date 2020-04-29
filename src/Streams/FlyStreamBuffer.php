@@ -22,12 +22,8 @@ namespace BiuradPHP\FileManager\Streams;
 use BiuradPHP\FileManager\Exception\WrapperException;
 use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
 use BiuradPHP\FileManager\Interfaces\StreamInterface;
-use Exception;
 use League\Flysystem\Adapter\Local as FlyLocal;
 use League\Flysystem\Cached\CachedAdapter;
-use League\Flysystem\FileNotFoundException;
-use LogicException;
-use SplFileObject;
 
 class FlyStreamBuffer implements StreamInterface
 {
@@ -40,8 +36,8 @@ class FlyStreamBuffer implements StreamInterface
     private $synchronized;
 
     /**
-     * @param FileManagerInterface $filesystem The filesystem managing the file to stream
-     * @param string $key The file key
+     * @param Filesystem $filesystem The filesystem managing the file to stream
+     * @param string     $key        The file key
      */
     public function __construct(FileManagerInterface $filesystem, $key)
     {
@@ -51,7 +47,6 @@ class FlyStreamBuffer implements StreamInterface
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
      */
     public function open(StreamMode $mode)
     {
@@ -85,7 +80,7 @@ class FlyStreamBuffer implements StreamInterface
     public function read($count)
     {
         if (false === $this->mode->allowsRead()) {
-            throw new LogicException('The stream does not allow read.');
+            throw new \LogicException('The stream does not allow read.');
         }
 
         $chunk = substr($this->content, $this->position, $count);
@@ -97,7 +92,7 @@ class FlyStreamBuffer implements StreamInterface
     public function write($data)
     {
         if (false === $this->mode->allowsWrite()) {
-            throw new LogicException('The stream does not allow write.');
+            throw new \LogicException('The stream does not allow write.');
         }
 
         $numWrittenBytes = mb_strlen($data, '8bit');
@@ -163,7 +158,7 @@ class FlyStreamBuffer implements StreamInterface
 
         try {
             $this->writeContent($this->content);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -177,7 +172,6 @@ class FlyStreamBuffer implements StreamInterface
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
      */
     public function stat()
     {
@@ -186,7 +180,7 @@ class FlyStreamBuffer implements StreamInterface
             $time = $this->filesystem->getTimestamp($this->key);
             $path = $this->filesystem->path($this->key);
             $isLocal = $this->isLocalAdapter();
-            $mode = ! $isDirectory ? (new SplFileObject($path))->fstat()['mode'] : 16893;
+            $mode = ! $isDirectory ? (new \SplFileObject($path))->fstat()['mode'] : 16893;
 
             $stats = [
                 'dev' => 1,
@@ -249,7 +243,7 @@ class FlyStreamBuffer implements StreamInterface
     {
         try {
             return $this->filesystem->readStream($this->key);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new WrapperException('Sorry, doesn\'t support reading directory on remote connection, use local storage instead.', 0, $e);
         }
     }

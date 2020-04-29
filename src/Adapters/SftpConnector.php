@@ -34,7 +34,7 @@ class SftpConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return SftpAdapter
+     * @return \League\Flysystem\Sftp\SftpAdapter
      */
     public function connect(array $config)
     {
@@ -46,7 +46,7 @@ class SftpConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return SftpAdapter
+     * @return \League\Flysystem\Sftp\SftpAdapter
      */
     protected function getAdapter(array $config)
     {

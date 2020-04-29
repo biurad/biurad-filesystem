@@ -34,7 +34,7 @@ class NullConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return NullAdapter
+     * @return \League\Flysystem\Adapter\NullAdapter
      */
     public function connect(array $config)
     {
@@ -44,7 +44,7 @@ class NullConnector implements ConnectorInterface
     /**
      * Get the null adapter.
      *
-     * @return NullAdapter
+     * @return \League\Flysystem\Adapter\NullAdapter
      */
     protected function getAdapter()
     {

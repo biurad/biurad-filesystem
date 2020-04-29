@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use League\Flysystem\Adapter\Ftp as FtpAdapter;
+use League\Flysystem\Adapter\Ftp;
 
 /**
  * This is the ftp connector class.
@@ -34,7 +34,7 @@ class FtpConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return FtpAdapter
+     * @return \League\Flysystem\Adapter\Ftp
      */
     public function connect(array $config)
     {
@@ -46,10 +46,10 @@ class FtpConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return FtpAdapter
+     * @return \League\Flysystem\Adapter\Ftp
      */
     protected function getAdapter(array $config)
     {
-        return new FtpAdapter($config);
+        return new Ftp($config);
     }
 }

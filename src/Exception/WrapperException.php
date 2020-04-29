@@ -19,7 +19,5 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Exception;
 
-use UnderflowException;
-
-class WrapperException extends UnderflowException
+class WrapperException extends \UnderflowException
 {}

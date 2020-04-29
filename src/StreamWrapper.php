@@ -1,5 +1,4 @@
-<?php /** @noinspection PhpUnusedParameterInspection */
-/** @noinspection PhpUndefinedMethodInspection */
+<?php
 
 declare(strict_types=1);
 
@@ -22,11 +21,9 @@ namespace BiuradPHP\FileManager;
 
 use BiuradPHP\FileManager\Interfaces\CloudConnectionInterface;
 use BiuradPHP\FileManager\Streams\StreamMode;
-use InvalidArgumentException;
+use BiuradPHP\Loader\Interfaces\ResourceLocatorInterface;
 use League\Flysystem\Adapter\Local;
-use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
-use RuntimeException;
 
 /**
  * Stream wrapper class for the Gaufrette filesystems.
@@ -46,7 +43,7 @@ class StreamWrapper
      * Defines the filesystem map.
      *
      * @param CloudConnectionInterface $map
-     * @return StreamWrapper
+     * @param ResourceLocatorInterface|null $resource
      */
     public static function setFilesystemMap(CloudConnectionInterface $map)
     {
@@ -76,7 +73,7 @@ class StreamWrapper
         static::streamWrapperUnregister($scheme);
 
         if (!static::streamWrapperRegister($scheme, __CLASS__)) {
-            throw new RuntimeException(sprintf('Could not register stream wrapper class %s for scheme %s.',
+            throw new \RuntimeException(sprintf('Could not register stream wrapper class %s for scheme %s.',
                 __CLASS__, $scheme
             ));
         }
@@ -84,16 +81,12 @@ class StreamWrapper
 
     /**
      * @param string $scheme - protocol scheme
-     *
-     * @return bool
      */
     protected static function streamWrapperUnregister($scheme)
     {
         if (in_array($scheme, stream_get_wrappers())) {
             return stream_wrapper_unregister($scheme);
         }
-
-        return false;
     }
 
     /**
@@ -213,7 +206,6 @@ class StreamWrapper
     }
 
     /**
-     * @param mixed $operation
      * @return bool
      */
     public function stream_lock($operation)
@@ -235,16 +227,13 @@ class StreamWrapper
 
         try {
             $stream->open($this->createStreamMode('r+'));
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
         }
 
         return $stream->stat();
     }
 
     /**
-     * @param string $path
-     * @param resource|null $context
-     *
      * @return mixed
      */
     public function dir_opendir($path, $context = null)
@@ -266,9 +255,6 @@ class StreamWrapper
     }
 
     /**
-     * @param string $path
-     * @param int $mode
-     * @param array $options
      * @return mixed
      */
     public function mkdir($path, $mode, $options)
@@ -277,8 +263,6 @@ class StreamWrapper
     }
 
     /**
-     * @param string $dirname
-     * @param resource|null $context
      * @return mixed
      */
     public function rmdir($dirname, $context = null)
@@ -297,7 +281,7 @@ class StreamWrapper
 
         try {
             $stream->open($this->createStreamMode('w+'));
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
             return false;
         }
 
@@ -305,7 +289,6 @@ class StreamWrapper
     }
 
     /**
-     * @param mixed $castAs
      * @return mixed
      */
     public function stream_cast($castAs)
@@ -342,7 +325,7 @@ class StreamWrapper
         }
 
         if (empty($domain) || empty($key)) {
-            throw new InvalidArgumentException(sprintf('The specified path (%s) is invalid.', $path));
+            throw new \InvalidArgumentException(sprintf('The specified path (%s) is invalid.', $path));
         }
 
         $filesystem = static::getFilesystemMap()->makeConnection($domain);
@@ -360,7 +343,6 @@ class StreamWrapper
     }
 
     /**
-     * @param CachedAdapter|AdapterInterface $filesystem
      * @return bool
      */
     protected function isLocalAdapter($filesystem)

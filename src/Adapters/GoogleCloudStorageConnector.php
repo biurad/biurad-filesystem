@@ -21,7 +21,7 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
 use Google\Cloud\Storage\StorageClient;
-use InvalidArgumentException;
+use Illuminate\Support\Arr;
 use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
 
 /**
@@ -37,7 +37,7 @@ class GoogleCloudStorageConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return GoogleStorageAdapter
+     * @return \Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter
      */
     public function connect(array $config)
     {
@@ -53,13 +53,14 @@ class GoogleCloudStorageConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
+     * @throws \InvalidArgumentException
+     *
      * @return string[]
-     * @throws InvalidArgumentException
      */
     protected function getAuth(array $config)
     {
         if (!array_key_exists('projectId', $config)) {
-            throw new InvalidArgumentException('The gcs connector requires project id configuration.');
+            throw new \InvalidArgumentException('The gcs connector requires project id configuration.');
         }
 
         $auth = [
@@ -78,7 +79,7 @@ class GoogleCloudStorageConnector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return StorageClient
+     * @return \Google\Cloud\Storage\StorageClient
      */
     protected function getClient(array $auth)
     {
@@ -90,26 +91,26 @@ class GoogleCloudStorageConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      *
      * @return array
      */
     protected function getConfig(array $config)
     {
         if (!array_key_exists('bucket', $config)) {
-            throw new InvalidArgumentException('The gcs connector requires bucket configuration.');
+            throw new \InvalidArgumentException('The gcs connector requires bucket configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['bucket', 'prefix', 'apiUri']));
+        return Arr::only($config, ['bucket', 'prefix', 'apiUri']);
     }
 
     /**
      * Get the gcs adapter.
      *
-     * @param StorageClient $client
-     * @param string[] $config
+     * @param \Google\Cloud\Storage\StorageClient $client
+     * @param string[]                            $config
      *
-     * @return GoogleStorageAdapter
+     * @return \Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter
      */
     protected function getAdapter(StorageClient $client, array $config)
     {

@@ -19,8 +19,6 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
-use League\Flysystem\AdapterInterface;
-
 /**
  * This is the connector interface.
  *
@@ -33,7 +31,7 @@ interface ConnectorInterface
      *
      * @param array $config
      *
-     * @return object|AdapterInterface
+     * @return object|\League\Flysystem\AdapterInterface
      */
     public function connect(array $config);
 }

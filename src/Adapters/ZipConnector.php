@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use Illuminate\Support\Arr;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 /**
@@ -58,7 +59,7 @@ class ZipConnector implements ConnectorInterface
             throw new \InvalidArgumentException('The zip connector requires path configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['path']));
+        return Arr::only($config, ['path']);
     }
 
     /**
@@ -66,7 +67,7 @@ class ZipConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return ZipArchiveAdapter
+     * @return \League\Flysystem\ZipArchive\ZipArchiveAdapter
      */
     protected function getAdapter(array $config)
     {

@@ -19,11 +19,10 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Config;
 
-use BiuradPHP\FileManager\{
-    Adapters\ConnectionFactory,
-    FileManager,
-    Interfaces\CloudConnectionInterface,
-    Plugin\ListDirectories};
+use BiuradPHP\FileManager\Adapters\ConnectionFactory;
+use BiuradPHP\FileManager\FileManager;
+use BiuradPHP\FileManager\Interfaces\CloudConnectionInterface;
+use BiuradPHP\FileManager\Plugin\ListDirectories;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\Cached\CacheInterface;
@@ -33,18 +32,14 @@ use League\Flysystem\Plugin\GetWithMetadata;
 use League\Flysystem\Plugin\ListFiles;
 use League\Flysystem\Plugin\ListPaths;
 use League\Flysystem\Plugin\ListWith;
+use Illuminate\Support\Arr;
 use League\Flysystem\Plugin\EmptyDir;
-use UnexpectedValueException;
-
-use function BiuradPHP\Support\array_get;
-use function array_keys;
 
 final class FileConfig implements CloudConnectionInterface
 {
     public const DEFAULT_DRIVER = 'local';
 
     private $cache;
-    private $factory;
 
     /**
      * @internal
@@ -53,12 +48,13 @@ final class FileConfig implements CloudConnectionInterface
      */
     private $config = [
         'default' => self::DEFAULT_DRIVER,
+        'aliases' => [],
         'caching' => [
             'enable' => false,
             'ttl' => null,
         ],
         'stream_protocol' => null,
-        'adapters' => [],
+        'resources' => [],
         'connections' => [
             'awss3' => [
                 'key'             => 'your-key',
@@ -193,11 +189,6 @@ final class FileConfig implements CloudConnectionInterface
     {
         $this->config = $config;
         $this->cache = $cache;
-        $this->factory = new ConnectionFactory;
-
-        foreach ($config['adapters'] ?? [] as $name => $adapter) {
-            $this->factory->addAdapter($name, $adapter);
-        }
     }
 
     /**
@@ -211,7 +202,7 @@ final class FileConfig implements CloudConnectionInterface
     /**
      * Get named list of all driver connections.
      *
-     * @return FileManager[]
+     * @return \BiuradPHP\FileManager\FileManager[]
      */
     public function getConnections(): array
     {
@@ -232,11 +223,11 @@ final class FileConfig implements CloudConnectionInterface
     {
         $options = [];
 
-        if ($visibility = array_get($this->config, 'visibility')) {
+        if ($visibility = Arr::get($this->config, 'visibility')) {
             $options['visibility'] = $visibility;
         }
 
-        if ($pirate = array_get($this->config, 'pirate')) {
+        if ($pirate = Arr::get($this->config, 'pirate')) {
             $options['disable_asserts'] = $pirate;
         }
 
@@ -266,18 +257,19 @@ final class FileConfig implements CloudConnectionInterface
      * @param string $driver
      *
      * @return AdapterInterface
-     * @throws UnexpectedValueException
+     *
+     * @throws \UnexpectedValueException
      */
     public function getFileAdapter(string $driver = self::DEFAULT_DRIVER): AdapterInterface
     {
         $config = $this->config;
         if (!$this->hasDriver($driver)) {
-            throw new UnexpectedValueException("Undefined flysystem adapter `{$driver}`.");
+            throw new \UnexpectedValueException("Undefined flysystem adapter `{$driver}`.");
         }
         // Set the custom driver.
         $config['default'] = $driver;
 
-        $newDriver =  $this->factory->makeAdapter($config);
+        $newDriver =  ConnectionFactory::make($config);
         if (null !== $this->cache && $config['caching']['enable']) {
             return new CachedAdapter($newDriver, $this->cache);
         }
@@ -290,7 +282,7 @@ final class FileConfig implements CloudConnectionInterface
      *
      * @param string $driver
      *
-     * @return FileManager
+     * @return \BiuradPHP\FileManager\FileManager
      */
     public function makeConnection(string $driver = self::DEFAULT_CLOUD)
     {
@@ -321,5 +313,19 @@ final class FileConfig implements CloudConnectionInterface
     public function getStreamProtocol(): ?string
     {
         return $this->config['stream_protocol'];
+    }
+
+    /**
+     * @param string $alias
+     *
+     * @return string
+     */
+    public function resolveAlias(string $alias): string
+    {
+        while (is_string($alias) && isset($this->config) && isset($this->config['aliases'][$alias])) {
+            $alias = $this->config['aliases'][$alias];
+        }
+
+        return $alias;
     }
 }

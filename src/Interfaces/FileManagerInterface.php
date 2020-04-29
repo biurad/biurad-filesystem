@@ -187,7 +187,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @param string|null $name
      *
-     * @return FileManagerInterface
+     * @return object
      */
     public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface;
 }

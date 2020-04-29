@@ -21,7 +21,7 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use Aws\S3\S3Client;
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use InvalidArgumentException;
+use Illuminate\Support\Arr;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 
 /**
@@ -37,7 +37,7 @@ class AwsS3Connector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return AwsS3Adapter
+     * @return \League\Flysystem\AwsS3v3\AwsS3Adapter
      */
     public function connect(array $config)
     {
@@ -53,18 +53,18 @@ class AwsS3Connector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      *
      * @return string[]
      */
     protected function getAuth(array $config)
     {
         if (!array_key_exists('version', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires version configuration.');
+            throw new \InvalidArgumentException('The awss3 connector requires version configuration.');
         }
 
         if (!array_key_exists('region', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires region configuration.');
+            throw new \InvalidArgumentException('The awss3 connector requires region configuration.');
         }
 
         $auth = [
@@ -74,9 +74,9 @@ class AwsS3Connector implements ConnectorInterface
 
         if (isset($config['key'])) {
             if (!array_key_exists('secret', $config)) {
-                throw new InvalidArgumentException('The awss3 connector requires authentication.');
+                throw new \InvalidArgumentException('The awss3 connector requires authentication.');
             }
-            $auth['credentials'] = array_intersect_key($config, array_flip(['key', 'secret']));
+            $auth['credentials'] = Arr::only($config, ['key', 'secret']);
         }
 
         if (array_key_exists('bucket_endpoint', $config)) {
@@ -103,7 +103,7 @@ class AwsS3Connector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return S3Client
+     * @return \Aws\S3\S3Client
      */
     protected function getClient(array $auth)
     {
@@ -115,7 +115,7 @@ class AwsS3Connector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      *
      * @return array
      */
@@ -126,19 +126,19 @@ class AwsS3Connector implements ConnectorInterface
         }
 
         if (!array_key_exists('bucket', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires bucket configuration.');
+            throw new \InvalidArgumentException('The awss3 connector requires bucket configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['bucket', 'prefix']));
+        return Arr::only($config, ['bucket', 'prefix']);
     }
 
     /**
      * Get the awss3 adapter.
      *
-     * @param S3Client $client
-     * @param string[] $config
+     * @param \Aws\S3\S3Client $client
+     * @param string[]         $config
      *
-     * @return AwsS3Adapter
+     * @return \League\Flysystem\AwsS3v3\AwsS3Adapter
      */
     protected function getAdapter(S3Client $client, array $config)
     {

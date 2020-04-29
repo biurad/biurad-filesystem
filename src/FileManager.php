@@ -1,7 +1,4 @@
-<?php /** @noinspection PhpIncludeInspection */
-/** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
+<?php
 
 declare(strict_types=1);
 
@@ -23,11 +20,9 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager;
 
 use BiuradPHP\FileManager\Config\FileConfig;
-use Exception;
 use League\Flysystem\AdapterInterface;
 use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
 use BiuradPHP\FileManager\Interfaces\StreamableInterface;
-use LogicException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use League\Flysystem\Cached\CachedAdapter;
 use Psr\Http\Message\StreamInterface;
@@ -96,7 +91,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
      */
     public function prepend($path, $data, $separator = PHP_EOL): bool
     {
@@ -109,7 +103,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
      */
     public function append($path, $data, $separator = PHP_EOL): bool
     {
@@ -122,7 +115,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritDoc}
-     * @throws FileNotFoundException
      */
     public function sharedGet($path)
     {
@@ -152,7 +144,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
      */
     public function localFilename(string $filename): string
     {
@@ -175,7 +166,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      *
-     * @throws FileNotFoundException
+     * @throws \League\Flysystem\FileNotFoundException
      */
     public function touch(string $filename, int $mode = null): bool
     {
@@ -189,7 +180,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function extension(string $filename): string
     {
@@ -227,7 +218,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      *
      * @return string
      *
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function normalizePath(string $path): string
     {
@@ -237,7 +228,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function isDirectory(string $filename): bool
     {
@@ -251,7 +242,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function isFile(string $filename): bool
     {
@@ -277,7 +268,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function getPermissions(string $filename): int
     {
@@ -294,7 +285,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws Exception
      */
     public function setPermissions(string $filename, int $mode)
     {
@@ -452,11 +442,10 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * Get the returned value of a file.
      *
-     * @param string $path
+     * @param  string  $path
      * @return mixed
      *
-     * @throws FileNotFoundException
-     * @throws Exception
+     * @throws \League\Flysystem\FileNotFoundException
      */
     public function getRequire($path)
     {
@@ -475,17 +464,15 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function requireOnce($file)
     {
-        return require_once $this->path($file);
+        require_once $this->path($file);
     }
 
     /**
      * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
      *
-     * @param string $target
-     * @param string $link
-     *
+     * @param  string  $target
+     * @param  string  $link
      * @return void
-     * @throws Exception
      */
     public function createSymlink(string $target, string $link)
     {
