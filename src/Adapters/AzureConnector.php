@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 
@@ -36,7 +36,7 @@ class AzureConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return \League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter
+     * @return AzureBlobStorageAdapter
      */
     public function connect(array $config)
     {
@@ -52,17 +52,17 @@ class AzureConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string[]
      */
     protected function getAuth(array $config)
     {
         if (!array_key_exists('account-name', $config) || !array_key_exists('api-key', $config)) {
-            throw new \InvalidArgumentException('The azure connector requires authentication.');
+            throw new InvalidArgumentException('The azure connector requires authentication.');
         }
 
-        return Arr::only($config, ['account-name', 'api-key']);
+        return array_intersect_key($config, array_flip(['account-name', 'api-key']));
     }
 
     /**
@@ -70,7 +70,7 @@ class AzureConnector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return \MicrosoftAzure\Storage\Blob\BlobRestProxy
+     * @return BlobRestProxy
      */
     protected function getClient(array $auth)
     {
@@ -89,19 +89,19 @@ class AzureConnector implements ConnectorInterface
     protected function getConfig(array $config)
     {
         if (!array_key_exists('container', $config)) {
-            throw new \InvalidArgumentException('The azure connector requires container configuration.');
+            throw new InvalidArgumentException('The azure connector requires container configuration.');
         }
 
-        return Arr::only($config, ['container']);
+        return array_intersect_key($config, array_flip(['container']));
     }
 
     /**
      * Get the container adapter.
      *
-     * @param \MicrosoftAzure\Storage\Blob\BlobRestProxy $client
-     * @param string[]                                   $config
+     * @param BlobRestProxy $client
+     * @param string[] $config
      *
-     * @return \League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter
+     * @return AzureBlobStorageAdapter
      */
     protected function getAdapter(BlobRestProxy $client, array $config)
     {

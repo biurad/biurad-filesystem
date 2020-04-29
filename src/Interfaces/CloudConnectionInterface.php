@@ -28,7 +28,7 @@ interface CloudConnectionInterface
      *
      * @param string $driver
      *
-     * @return \BiuradPHP\FileManager\FileManager
+     * @return FileManagerInterface
      */
     public function makeConnection(string $driver = self::DEFAULT_CLOUD);
 }

@@ -21,13 +21,14 @@ namespace BiuradPHP\FileManager;
 
 use League\Flysystem\Cached\Storage\AbstractCache;
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class FileCache extends AbstractCache
 {
     /**
      * The cache repository implementation.
      *
-     * @var \Psr\SimpleCache\CacheInterface
+     * @var CacheInterface
      */
     protected $repository;
 
@@ -48,7 +49,7 @@ class FileCache extends AbstractCache
     /**
      * Create a new cache instance.
      *
-     * @param  \Psr\SimpleCache\CacheInterface $repository
+     * @param CacheInterface $repository
      * @param  array $config
      * @return void
      */
@@ -63,6 +64,7 @@ class FileCache extends AbstractCache
      * Load the cache.
      *
      * @return void
+     * @throws InvalidArgumentException
      */
     public function load()
     {
@@ -77,6 +79,7 @@ class FileCache extends AbstractCache
      * Persist the cache.
      *
      * @return void
+     * @throws InvalidArgumentException
      */
     public function save()
     {

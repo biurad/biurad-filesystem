@@ -20,10 +20,11 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
-use Illuminate\Support\Arr;
 use League\Flysystem\Rackspace\RackspaceAdapter;
 use OpenCloud\ObjectStore\Resource\Container;
 use OpenCloud\Rackspace as OpenStackRackspace;
+
+use function BiuradPHP\Support\array_get;
 
 /**
  * This is the rackspace connector class.
@@ -76,7 +77,7 @@ class RackspaceConnector implements ConnectorInterface
             throw new \InvalidArgumentException('The rackspace connector requires container configuration.');
         }
 
-        return Arr::only($config, ['username', 'apiKey', 'endpoint', 'region', 'container', 'internal']);
+        return array_intersect_key($config, array_flip(['username', 'apiKey', 'endpoint', 'region', 'container', 'internal']));
     }
 
     /**
@@ -84,7 +85,7 @@ class RackspaceConnector implements ConnectorInterface
      *
      * @param string[] $auth
      *
-     * @return \OpenCloud\ObjectStore\Resource\Container
+     * @return Container
      */
     protected function getClient(array $auth)
     {
@@ -93,7 +94,7 @@ class RackspaceConnector implements ConnectorInterface
             'apiKey'   => $auth['apiKey'],
         ]);
 
-        $urlType = Arr::get($auth, 'internal', false) ? 'internalURL' : 'publicURL';
+        $urlType = array_get($auth, 'internal', false) ? 'internalURL' : 'publicURL';
 
         return $client->objectStoreService('cloudFiles', $auth['region'], $urlType)->getContainer($auth['container']);
     }
@@ -103,9 +104,9 @@ class RackspaceConnector implements ConnectorInterface
      *
      * @codeCoverageIgnore
      *
-     * @param \OpenCloud\ObjectStore\Resource\Container $client
+     * @param Container $client
      *
-     * @return \League\Flysystem\Rackspace\RackspaceAdapter
+     * @return RackspaceAdapter
      */
     protected function getAdapter(Container $client)
     {
