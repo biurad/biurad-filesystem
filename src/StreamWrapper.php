@@ -1,4 +1,5 @@
-<?php /** @noinspection PhpUnusedParameterInspection */
+<?php
+/** @noinspection PhpUnusedParameterInspection */
 /** @noinspection PhpUndefinedMethodInspection */
 
 declare(strict_types=1);
@@ -48,7 +49,7 @@ class StreamWrapper
      * @param CloudConnectionInterface $map
      * @return StreamWrapper
      */
-    public static function setFilesystemMap(CloudConnectionInterface $map)
+    public static function setFilesystemMap(CloudConnectionInterface $map): StreamWrapper
     {
         static::$filesystemMap = $map;
 
@@ -70,7 +71,7 @@ class StreamWrapper
      *
      * @param string $scheme Default is flysystem
      */
-    public static function register($scheme = 'flysystem')
+    public static function register($scheme = 'flysystem'): void
     {
         $scheme = self::$filesystemMap->getStreamProtocol() ?? $scheme;
         static::streamWrapperUnregister($scheme);
@@ -87,9 +88,9 @@ class StreamWrapper
      *
      * @return bool
      */
-    protected static function streamWrapperUnregister($scheme)
+    protected static function streamWrapperUnregister($scheme): bool
     {
-        if (in_array($scheme, stream_get_wrappers())) {
+        if (in_array($scheme, stream_get_wrappers(), true)) {
             return stream_wrapper_unregister($scheme);
         }
 
@@ -102,7 +103,7 @@ class StreamWrapper
      *
      * @return bool
      */
-    protected static function streamWrapperRegister($scheme, $className)
+    protected static function streamWrapperRegister($scheme, $className): bool
     {
         return stream_wrapper_register($scheme, $className);
     }
@@ -354,7 +355,7 @@ class StreamWrapper
         return $filesystem->createStream($key);
     }
 
-    protected function createStreamMode($mode)
+    protected function createStreamMode($mode): StreamMode
     {
         return new StreamMode($mode);
     }
@@ -363,16 +364,12 @@ class StreamWrapper
      * @param CachedAdapter|AdapterInterface $filesystem
      * @return bool
      */
-    protected function isLocalAdapter($filesystem)
+    protected function isLocalAdapter($filesystem): bool
     {
         if (($adapter = $filesystem->getAdapter()) instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
         }
 
-        if ($adapter instanceof Local) {
-            return true;
-        }
-
-        return false;
+        return $adapter instanceof Local;
     }
 }

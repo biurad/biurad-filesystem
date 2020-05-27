@@ -1,4 +1,5 @@
 <?php
+/** @noinspection StaticClosureCanBeUsedInspection */
 
 /*
  * This code is under BSD 3-Clause "New" or "Revised" License.
@@ -17,11 +18,14 @@
 
 namespace BiuradPHP\FileManager\Tests;
 
+use BiuradPHP\FileManager\Config\FileConfig;
 use BiuradPHP\FileManager\FileManager;
 use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
+use Closure;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
+use League\Flysystem\Cached\Storage\AbstractCache;
 use League\Flysystem\Cached\Storage\Memory;
 use PHPUnit\Framework\TestCase;
 
@@ -29,49 +33,43 @@ use PHPUnit\Framework\TestCase;
  * @requires PHP 7.1.30
  * @requires PHPUnit 7.5
  */
-class FilesystemTestCase extends TestCase
+abstract class FilesystemTestCase extends TestCase
 {
-    private $umask;
-
-    protected $longPathNamesWindows = [];
-
     /**
-     * @var \Closure|\BiuradPHP\FileManager\FileManager
+     * @var Closure|FileManager
      */
-    protected $filesystem = null;
+    protected $filesystem;
 
     /**
      * @var string
      */
-    protected $workspace = null;
+    protected $workspace;
 
     protected function setUp(): void
     {
-        $this->umask = umask(0);
-        $this->workspace = __DIR__.\DIRECTORY_SEPARATOR.'Fixtures';
+        $this->workspace = __DIR__. DIRECTORY_SEPARATOR.'Fixtures';
 
-        $this->filesystem = function (AdapterInterface & $driver) {
-            return new FileManager($driver);
+        $this->filesystem = function (FileConfig $config, AdapterInterface & $driver) {
+            return new FileManager($driver, $config);
         };
     }
 
-    protected function tearDown(): void
+    abstract protected function getConfig(): FileConfig;
+
+    protected function getAdapter(): AdapterInterface
     {
-        $this->filesystem->delete($this->workspace);
-        umask($this->umask);
+        return new Local($this->workspace);
     }
 
     protected function getFlysystem(): FileManagerInterface
     {
-        $this->driver = new Local($this->workspace);
-
-        return $this->filesystem->call(null, $this->driver);
+        return ($this->filesystem)($this->getConfig(), $this->getAdapter());
     }
 
-    protected function getFlysystemCache(): FileManagerInterface
+    protected function getFlysystemCache(AbstractCache $cache = null): FileManagerInterface
     {
-        $driver = new CachedAdapter($this->driver, new Memory);
+        $driver = new CachedAdapter($this->getAdapter(), $cache ?? new Memory);
 
-        return $this->filesystem->call(null, $driver);
+        return ($this->filesystem)($this->getConfig(), $driver);
     }
 }

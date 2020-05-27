@@ -19,10 +19,10 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Config;
 
-use BiuradPHP\FileManager\{
-    Adapters\ConnectionFactory,
+use BiuradPHP\FileManager\{Adapters\ConnectionFactory,
     FileManager,
     Interfaces\CloudConnectionInterface,
+    Interfaces\FileManagerInterface,
     Plugin\ListDirectories};
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
@@ -51,137 +51,7 @@ final class FileConfig implements CloudConnectionInterface
      *
      * @var array
      */
-    private $config = [
-        'default' => self::DEFAULT_DRIVER,
-        'caching' => [
-            'enable' => false,
-            'ttl' => null,
-        ],
-        'stream_protocol' => null,
-        'adapters' => [],
-        'connections' => [
-            'awss3' => [
-                'key'             => 'your-key',
-                'secret'          => 'your-secret',
-                'bucket'          => 'your-bucket',
-                'region'          => 'your-region',
-                'version'         => 'latest',
-                // 'bucket_endpoint' => false,
-                // 'calculate_md5'   => true,
-                // 'scheme'          => 'https',
-                // 'endpoint'        => 'your-url',
-                // 'prefix'          => 'your-prefix',
-                // 'visibility'      => 'public',
-                // 'pirate'          => false,
-                // 'eventable'       => true,
-                // 'cache'           => 'foo'
-            ],
-
-            'azure' => [
-                'account-name' => 'your-account-name',
-                'api-key'      => 'your-api-key',
-                'container'    => 'your-container',
-                // 'visibility'   => 'public',
-                // 'pirate'       => false,
-                // 'eventable'    => true,
-                // 'cache'        => 'foo'
-            ],
-
-            'dropbox' => [
-                'token'      => 'your-token',
-                // 'prefix'     => 'your-prefix',
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'ftp' => [
-                'host'       => 'ftp.example.com',
-                'port'       => 21,
-                'username'   => 'your-username',
-                'password'   => 'your-password',
-                // 'root'       => '/path/to/root',
-                // 'passive'    => true,
-                // 'ssl'        => true,
-                // 'timeout'    => 20,
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'gcs' => [
-                'projectId' => 'your-project-id',
-                'keyFile'   => 'your-key-file',
-                'bucket'    => 'your-bucket',
-                // 'prefix'    => 'your-prefix',
-                // 'apiUri'    => 'http://your-domain.com',
-            ],
-
-            'gridfs' => [
-                'server'     => 'mongodb://localhost:27017',
-                'database'   => 'your-database',
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'local' => [
-                'path'       => null,
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'rackspace' => [
-                'endpoint'   => 'your-endpoint',
-                'region'     => 'your-region',
-                'username'   => 'your-username',
-                'apiKey'     => 'your-api-key',
-                'container'  => 'your-container',
-                // 'internal'   => false,
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'sftp' => [
-                'host'       => 'sftp.example.com',
-                'port'       => 22,
-                'username'   => 'your-username',
-                'password'   => 'your-password',
-                // 'privateKey' => 'path/to/or/contents/of/privatekey',
-                // 'root'       => '/path/to/root',
-                // 'timeout'    => 20,
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'webdav' => [
-                'baseUri'    => 'http://example.org/dav/',
-                'userName'   => 'your-username',
-                'password'   => 'your-password',
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-
-            'zip' => [
-                'path'       => '/files.zip',
-                // 'visibility' => 'public',
-                // 'pirate'     => false,
-                // 'eventable'  => true,
-                // 'cache'      => 'foo'
-            ],
-        ]
-    ];
+    private $config;
 
     /**
      * At this moment on array based configs can be supported.
@@ -226,9 +96,9 @@ final class FileConfig implements CloudConnectionInterface
     /**
      * Get the flysystem options.
      *
-     * @return array|null
+     * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         $options = [];
 
@@ -248,7 +118,7 @@ final class FileConfig implements CloudConnectionInterface
      *
      * @return array
      */
-    public function defaultPlugins()
+    public function defaultPlugins(): array
     {
         return [
             new ListDirectories(),
@@ -277,7 +147,7 @@ final class FileConfig implements CloudConnectionInterface
         // Set the custom driver.
         $config['default'] = $driver;
 
-        $newDriver =  $this->factory->makeAdapter($config);
+        $newDriver =  $this->factory::makeAdapter($config);
         if (null !== $this->cache && $config['caching']['enable']) {
             return new CachedAdapter($newDriver, $this->cache);
         }
@@ -290,15 +160,15 @@ final class FileConfig implements CloudConnectionInterface
      *
      * @param string $driver
      *
-     * @return FileManager
+     * @return FileManagerInterface
      */
-    public function makeConnection(string $driver = self::DEFAULT_CLOUD)
+    public function makeConnection(string $driver = self::DEFAULT_CLOUD): FileManagerInterface
     {
         $new = clone new FileManager($this->getFileAdapter($driver), $this);
 
         foreach ($this->defaultPlugins() as $plugin) {
             $new->addPlugin($plugin);
-        };
+        }
 
         return $new;
     }

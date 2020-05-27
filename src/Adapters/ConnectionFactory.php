@@ -39,9 +39,9 @@ class ConnectionFactory
      *
      * @return AdapterInterface
      */
-    public static function makeAdapter(array $config)
+    public static function makeAdapter(array $config): AdapterInterface
     {
-        $name = isset($config['default']) ? $config['default'] : 'local';
+        $name = $config['default'] ?? 'local';
 
         return self::createConnector($name)->connect($config['connections'][$name] ?? []);
     }
@@ -54,7 +54,7 @@ class ConnectionFactory
      * @return ConnectorInterface
      * @throws InvalidArgumentException
      */
-    public static function createConnector(?string $config)
+    public static function createConnector(?string $config): ConnectorInterface
     {
         // Custom Adapters...
         if (null !== $config && isset(self::$adapters[$config])) {

@@ -273,23 +273,19 @@ class FlyStreamBuffer implements StreamInterface
     /**
      * @return bool
      */
-    protected function isLocalAdapter()
+    protected function isLocalAdapter(): bool
     {
         if (($adapter = $this->filesystem->getAdapter()) instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
         }
 
-        if ($adapter instanceof FlyLocal) {
-            return true;
-        }
-
-        return false;
+        return $adapter instanceof FlyLocal;
     }
 
     /**
      * @return bool
      */
-    protected function hasNewContentAtFurtherPosition()
+    protected function hasNewContentAtFurtherPosition(): bool
     {
         return $this->position > 0 && !$this->content;
     }
@@ -299,7 +295,7 @@ class FlyStreamBuffer implements StreamInterface
      *
      * @return string
      */
-    protected function writeContent($content = '')
+    protected function writeContent($content = ''): string
     {
         $this->filesystem->put($this->key, $content);
 

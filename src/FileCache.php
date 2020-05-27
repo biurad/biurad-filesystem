@@ -55,8 +55,8 @@ class FileCache extends AbstractCache
      */
     public function __construct(CacheInterface $repository, array $config = [])
     {
-        $this->key = isset($config['key']) ? $config['key'] : 'flysystem';
-        $this->expire = isset($config['ttl']) ? $config['ttl'] : null;
+        $this->key = $config['key'] ?? 'flysystem';
+        $this->expire = $config['ttl'] ?? null;
         $this->repository = $repository;
     }
 
@@ -66,7 +66,7 @@ class FileCache extends AbstractCache
      * @return void
      * @throws InvalidArgumentException
      */
-    public function load()
+    public function load(): void
     {
         $contents = $this->repository->get($this->key);
 
@@ -81,7 +81,7 @@ class FileCache extends AbstractCache
      * @return void
      * @throws InvalidArgumentException
      */
-    public function save()
+    public function save(): void
     {
         $contents = $this->getForStorage();
 

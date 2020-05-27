@@ -51,7 +51,7 @@ class StreamMode
      *
      * @return string
      */
-    public function getMode()
+    public function getMode(): string
     {
         return $this->mode;
     }
@@ -61,7 +61,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function allowsRead()
+    public function allowsRead(): bool
     {
         if ($this->plus) {
             return true;
@@ -75,7 +75,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function allowsWrite()
+    public function allowsWrite(): bool
     {
         if ($this->plus) {
             return true;
@@ -89,7 +89,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function allowsExistingFileOpening()
+    public function allowsExistingFileOpening(): bool
     {
         return 'x' !== $this->base;
     }
@@ -99,7 +99,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function allowsNewFileOpening()
+    public function allowsNewFileOpening(): bool
     {
         return 'r' !== $this->base;
     }
@@ -110,7 +110,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function impliesExistingContentDeletion()
+    public function impliesExistingContentDeletion(): bool
     {
         return 'w' === $this->base;
     }
@@ -121,7 +121,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function impliesPositioningCursorAtTheBeginning()
+    public function impliesPositioningCursorAtTheBeginning(): bool
     {
         return 'a' !== $this->base;
     }
@@ -132,7 +132,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function impliesPositioningCursorAtTheEnd()
+    public function impliesPositioningCursorAtTheEnd(): bool
     {
         return 'a' === $this->base;
     }
@@ -142,7 +142,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function isBinary()
+    public function isBinary(): bool
     {
         return 'b' === $this->flag;
     }
@@ -152,7 +152,7 @@ class StreamMode
      *
      * @return bool
      */
-    public function isText()
+    public function isText(): bool
     {
         return false === $this->isBinary();
     }

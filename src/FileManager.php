@@ -1,7 +1,6 @@
-<?php /** @noinspection PhpIncludeInspection */
+<?php
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpUndefinedNamespaceInspection */
-/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection CallableParameterUseCaseInTypeContextInspection */
 
 declare(strict_types=1);
 
@@ -46,7 +45,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * Default file mode for this manager.
      */
-    const DEFAULT_FILE_MODE = 0664;
+    public const DEFAULT_FILE_MODE = 0664;
 
     /** @var FileConfig */
     private $fileConfig;
@@ -55,14 +54,13 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * Constructor.
      *
      * @param AdapterInterface $adapter
-     * @param FileConfig|null    $config
+     * @param FileConfig       $config
      */
-    public function __construct(AdapterInterface $adapter, ?FileConfig $config = null)
+    public function __construct(AdapterInterface $adapter, FileConfig $config)
     {
         $this->fileConfig = $config;
-        register_shutdown_function([$this, '__destruct']);
 
-        return parent::__construct($adapter, is_null($config) ? null : $config->getOptions());
+        parent::__construct($adapter, $config->getOptions());
     }
 
     /**
@@ -124,13 +122,13 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * {@inheritDoc}
      * @throws FileNotFoundException
      */
-    public function sharedGet($path)
+    public function sharedGet(string $path): string
     {
         $contents = '';
         $file = $this->path($path);
 
         if (!$this->isLocalAdapter()) {
-            return $this->get($path)->getContents();
+            return (string) $this->get($path)->getContents();
         }
 
         if ($handle = fopen($file, 'rb')) {
@@ -211,7 +209,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * {@inheritdoc}
      */
-    public function path(string $path = '')
+    public function path(string $path = ''): string
     {
         if (($prefix = $this->getAdapter()) instanceof CachedAdapter) {
             $prefix = $prefix->getAdapter();
@@ -269,7 +267,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * @param  int     $flags
      * @return array
      */
-    public function glob(string $pattern, int $flags = 0)
+    public function glob(string $pattern, int $flags = 0): array
     {
         return glob($pattern, $flags);
     }
@@ -305,7 +303,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
             return false;
         }
 
-        return $this->getPermissions($filename) == $mode || chmod($this->path($filename), $mode);
+        return $this->getPermissions($filename) === $mode || chmod($this->path($filename), $mode);
     }
 
     /**
@@ -351,7 +349,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     {
         $options = is_string($config)
             ? ['visibility' => $config]
-            : (array) $config;
+            : $config;
 
         // If the given contents is actually a file or uploaded file instance than we will
         // automatically store the file using a stream. This provides a convenient path
@@ -374,7 +372,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function putFileAs($path, $file, $name, $options = [])
     {
-        $stream = fopen($file->getRealPath(), 'r');
+        $stream = fopen($file->getRealPath(), 'rb');
 
         // Next, we will format the path of the file and store the file using a stream since
         // they provide better performance than alternatives. Once we write the file this
@@ -394,7 +392,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * @param  array  $contents
      * @return array
      */
-    private function filterContentsByType($contents)
+    private function filterContentsByType($contents): array
     {
         $result = [];
 
@@ -406,14 +404,9 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
      /**
-     * Get an array of all files in a directory.
-     *
-     * @param  string|null  $directory
-     * @param  bool  $recursive
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getFiles($directory = null, $recursive = false)
+    public function getFiles(string $directory = null, $recursive = false): array
     {
         $contents = $this->listFiles($directory, $recursive);
 
@@ -421,14 +414,9 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
     /**
-     * Get all of the directories within a given directory.
-     *
-     * @param  string|null  $directory
-     * @param  bool  $recursive
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getDirectories($directory = null, $recursive = false)
+    public function getDirectories(string $directory = null, $recursive = false): array
     {
         $contents = $this->listDirectories($directory, $recursive);
 
@@ -440,7 +428,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      *
      * @return void
      */
-    public function flushCache()
+    public function flushCache(): void
     {
         $adapter = $this->getAdapter();
 
@@ -450,41 +438,12 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
     /**
-     * Get the returned value of a file.
-     *
-     * @param string $path
-     * @return mixed
-     *
-     * @throws FileNotFoundException
-     * @throws Exception
-     */
-    public function getRequire($path)
-    {
-        if ($this->isFile($path)) {
-            return require $this->path($path);
-        }
-
-        throw new FileNotFoundException("File does not exist at path {$path}");
-    }
-
-    /**
-     * Require the given file once.
-     *
-     * @param  string  $file
-     * @return mixed
-     */
-    public function requireOnce($file)
-    {
-        return require_once $this->path($file);
-    }
-
-    /**
      * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
      *
      * @param string $target
      * @param string $link
      *
-     * @return void
+     * @return mixed
      * @throws Exception
      */
     public function createSymlink(string $target, string $link)
@@ -492,25 +451,20 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         if (PHP_OS_FAMILY !== 'Windows') {
             return symlink($this->path($target), $link);
         }
-
         $mode = $this->isDirectory($target) ? 'J' : 'H';
 
-        exec("mklink /{$mode} ".escapeshellarg($link).' '.escapeshellarg($this->path($target)));
+        return exec("mklink /{$mode} ".escapeshellarg($link).' '.escapeshellarg($this->path($target)));
     }
 
     /**
      * @return bool
      */
-    protected function isLocalAdapter()
+    protected function isLocalAdapter(): bool
     {
         if (($adapter = $this->getAdapter()) instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
         }
 
-        if ($adapter instanceof Local) {
-            return true;
-        }
-
-        return false;
+        return $adapter instanceof Local;
     }
 }

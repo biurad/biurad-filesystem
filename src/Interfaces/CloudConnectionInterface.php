@@ -30,5 +30,5 @@ interface CloudConnectionInterface
      *
      * @return FileManagerInterface
      */
-    public function makeConnection(string $driver = self::DEFAULT_CLOUD);
+    public function makeConnection(string $driver = self::DEFAULT_CLOUD): FileManagerInterface;
 }

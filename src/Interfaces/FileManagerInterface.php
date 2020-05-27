@@ -26,6 +26,8 @@ use League\Flysystem\FilesystemInterface as LeagueFilesystemInterface;
 /**
  * Access to hard drive or local store. Does not provide full filesystem abstractions.
  *
+ * @method void flushCache()
+ *
  * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  * @license BSD-3-Clause
  */
@@ -80,7 +82,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @return string
      */
-    public function sharedGet($path);
+    public function sharedGet(string $path): string;
 
     /**
      * Touch file to update it's timeUpdated value or create new file. Location must exist.
@@ -162,7 +164,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @return string
      */
-    public function path(string $path);
+    public function path(string $path): string;
 
     /**
      * Find path names matching a given pattern.
@@ -171,16 +173,37 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @param  int     $flags
      * @return array
      */
-    public function glob(string $pattern, int $flags = 0);
+    public function glob(string $pattern, int $flags = 0): array;
 
     /**
      * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
      *
      * @param  string  $target
      * @param  string  $link
-     * @return void
+     *
+     * @return mixed
      */
     public function createSymlink(string $target, string $link);
+
+    /**
+     * Get an array of all files in a directory.
+     *
+     * @param  string|null  $directory
+     * @param  bool  $recursive
+     *
+     * @return array
+     */
+    public function getFiles(string $directory = null, $recursive = false): array;
+
+    /**
+     * Get all of the directories within a given directory.
+     *
+     * @param  string|null  $directory
+     * @param  bool  $recursive
+     *
+     * @return array
+     */
+    public function getDirectories(string $directory = null, $recursive = false): array;
 
     /**
      * Get a connection instance.

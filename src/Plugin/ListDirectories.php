@@ -1,4 +1,5 @@
 <?php
+/** @noinspection StaticClosureCanBeUsedInspection */
 
 declare(strict_types=1);
 
@@ -28,7 +29,7 @@ class ListDirectories extends AbstractPlugin
      *
      * @return string
      */
-    public function getMethod()
+    public function getMethod(): string
     {
         return 'listDirectories';
     }
@@ -41,7 +42,7 @@ class ListDirectories extends AbstractPlugin
      *
      * @return array
      */
-    public function handle($directory = '', $recursive = false)
+    public function handle($directory = '', $recursive = false): array
     {
         $contents = $this->filesystem->listContents($directory, $recursive);
 

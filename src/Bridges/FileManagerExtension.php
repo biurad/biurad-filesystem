@@ -46,7 +46,7 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     /**
      * {@inheritDoc}
      */
-    public function loadConfiguration()
+    public function loadConfiguration(): void
     {
         $builder = $this->getContainerBuilder();
 
