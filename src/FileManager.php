@@ -1,38 +1,36 @@
 <?php
-/** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection CallableParameterUseCaseInTypeContextInspection */
 
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager;
 
 use BiuradPHP\FileManager\Config\FileConfig;
-use Exception;
-use League\Flysystem\AdapterInterface;
 use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
 use BiuradPHP\FileManager\Interfaces\StreamableInterface;
-use LogicException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-use League\Flysystem\Cached\CachedAdapter;
-use Psr\Http\Message\StreamInterface;
-use League\Flysystem\Adapter\Local;
 use BiuradPHP\FileManager\Interfaces\StreamInterface as FlyStreamInterface;
-use League\Flysystem\{FileNotFoundException, Filesystem as LeagueFilesystem, Util};
+use Exception;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Cached\CachedAdapter;
+use League\Flysystem\FileNotFoundException;
+use League\Flysystem\Filesystem as LeagueFilesystem;
+use League\Flysystem\Util;
+use LogicException;
+use Psr\Http\Message\StreamInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Default abstraction for file management operations.
@@ -66,13 +64,14 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * Get a connection instance.
      *
-     * @param string|null $name
+     * @param null|string $name
      *
-     * @return object|FileManagerInterface
+     * @return FileManagerInterface|object
      */
     public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface
     {
         $newFly = clone $this->fileConfig;
+
         return $newFly->makeConnection($name);
     }
 
@@ -96,7 +95,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * {@inheritdoc}
      * @throws FileNotFoundException
      */
-    public function prepend($path, $data, $separator = PHP_EOL): bool
+    public function prepend($path, $data, $separator = \PHP_EOL): bool
     {
         if ($this->has($path)) {
             return $this->put($path, $data . $separator . $this->read($path));
@@ -109,7 +108,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * {@inheritdoc}
      * @throws FileNotFoundException
      */
-    public function append($path, $data, $separator = PHP_EOL): bool
+    public function append($path, $data, $separator = \PHP_EOL): bool
     {
         if ($this->has($path)) {
             return $this->put($path, $this->read($path) . $separator . $data);
@@ -125,23 +124,23 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     public function sharedGet(string $path): string
     {
         $contents = '';
-        $file = $this->path($path);
+        $file     = $this->path($path);
 
         if (!$this->isLocalAdapter()) {
             return (string) $this->get($path)->getContents();
         }
 
-        if ($handle = fopen($file, 'rb')) {
+        if ($handle = \fopen($file, 'rb')) {
             try {
-                if (flock($handle, LOCK_SH)) {
-                    clearstatcache(true, $file);
+                if (\flock($handle, \LOCK_SH)) {
+                    \clearstatcache(true, $file);
 
-                    $contents = fread($handle, $this->getSize($path) ?: 1);
+                    $contents = \fread($handle, $this->getSize($path) ?: 1);
 
-                    flock($handle, LOCK_UN);
+                    \flock($handle, \LOCK_UN);
                 }
             } finally {
-                fclose($handle);
+                \fclose($handle);
             }
         }
 
@@ -177,7 +176,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function touch(string $filename, int $mode = null): bool
     {
-        if ($this->isLocalAdapter() && !touch($this->path($filename))) {
+        if ($this->isLocalAdapter() && !\touch($this->path($filename))) {
             return false;
         }
 
@@ -191,7 +190,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function extension(string $filename): string
     {
-        return strtolower(pathinfo($this->path($filename), PATHINFO_EXTENSION));
+        return \strtolower(\pathinfo($this->path($filename), \PATHINFO_EXTENSION));
     }
 
     /**
@@ -203,7 +202,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
             throw new FileNotFoundException($filename);
         }
 
-        return md5($this->read($filename));
+        return \md5($this->read($filename));
     }
 
     /**
@@ -221,11 +220,10 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * Create the most normalized version for path to file or location.
      *
-     * @param string $path        File or location path.
-     *
-     * @return string
+     * @param string $path file or location path
      *
      * @throws LogicException
+     * @return string
      */
     public function normalizePath(string $path): string
     {
@@ -263,13 +261,13 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     /**
      * Find path names matching a given pattern.
      *
-     * @param  string  $pattern
-     * @param  int     $flags
+     * @param  string $pattern
+     * @param  int    $flags
      * @return array
      */
     public function glob(string $pattern, int $flags = 0): array
     {
-        return glob($pattern, $flags);
+        return \glob($pattern, $flags);
     }
 
     /**
@@ -284,7 +282,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         }
 
         if ($this->isLocalAdapter()) {
-            return fileperms($this->path($filename)) ?? 0777;
+            return \fileperms($this->path($filename)) ?? 0777;
         }
 
         return 33204;
@@ -303,7 +301,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
             return false;
         }
 
-        return $this->getPermissions($filename) === $mode || chmod($this->path($filename), $mode);
+        return $this->getPermissions($filename) === $mode || \chmod($this->path($filename), $mode);
     }
 
     /**
@@ -316,30 +314,31 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         $path = Util::normalizePath($path);
         $from = Util::normalizePath($from);
 
-        $from = explode('/', $from);
-        $path = explode('/', $path);
+        $from     = \explode('/', $from);
+        $path     = \explode('/', $path);
         $relative = $path;
 
         foreach ($from as $depth => $dir) {
             //Find first non-matching dir
             if ($dir === $path[$depth]) {
                 //Ignore this directory
-                array_shift($relative);
+                \array_shift($relative);
             } else {
                 //Get number of remaining dirs to $from
-                $remaining = count($from) - $depth;
+                $remaining = \count($from) - $depth;
+
                 if ($remaining > 1) {
                     //Add traversals up to first matching directory
-                    $padLength = (count($relative) + $remaining - 1) * -1;
-                    $relative = array_pad($relative, $padLength, '..');
+                    $padLength = (\count($relative) + $remaining - 1) * -1;
+                    $relative  = \array_pad($relative, $padLength, '..');
+
                     break;
-                } else {
-                    $relative[0] = './' . $relative[0];
                 }
+                $relative[0] = './' . $relative[0];
             }
         }
 
-        return implode('/', $relative);
+        return \implode('/', $relative);
     }
 
     /**
@@ -347,7 +346,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function put($path, $contents, array $config = [])
     {
-        $options = is_string($config)
+        $options = \is_string($config)
             ? ['visibility' => $config]
             : $config;
 
@@ -362,7 +361,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
             return $this->putStream($path, $contents->detach(), $options);
         }
 
-        return is_resource($contents)
+        return \is_resource($contents)
                 ? $this->putStream($path, $contents, $options)
                 : parent::put($path, $contents, $options);
     }
@@ -372,38 +371,21 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      */
     public function putFileAs($path, $file, $name, $options = [])
     {
-        $stream = fopen($file->getRealPath(), 'rb');
+        $stream = \fopen($file->getRealPath(), 'rb');
 
         // Next, we will format the path of the file and store the file using a stream since
         // they provide better performance than alternatives. Once we write the file this
         // stream will get closed automatically by us so the developer doesn't have to.
-        $result = $this->put($path = trim($path . '/' . $name, '/'), $stream, $options);
+        $result = $this->put($path = \trim($path . '/' . $name, '/'), $stream, $options);
 
-        if (is_resource($stream)) {
-            fclose($stream);
+        if (\is_resource($stream)) {
+            \fclose($stream);
         }
 
         return $result ? $path : false;
     }
 
     /**
-     * Filter directory contents by type.
-     *
-     * @param  array  $contents
-     * @return array
-     */
-    private function filterContentsByType($contents): array
-    {
-        $result = [];
-
-        foreach($contents as $files) {
-            $result[] = $files['path'];
-        }
-
-        return $result;
-    }
-
-     /**
      * {@inheritdoc}
      */
     public function getFiles(string $directory = null, $recursive = false): array
@@ -425,8 +407,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * Flush the Flysystem cache.
-     *
-     * @return void
      */
     public function flushCache(): void
     {
@@ -443,17 +423,17 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * @param string $target
      * @param string $link
      *
-     * @return mixed
      * @throws Exception
+     * @return mixed
      */
     public function createSymlink(string $target, string $link)
     {
-        if (PHP_OS_FAMILY !== 'Windows') {
-            return symlink($this->path($target), $link);
+        if (\PHP_OS_FAMILY !== 'Windows') {
+            return \symlink($this->path($target), $link);
         }
         $mode = $this->isDirectory($target) ? 'J' : 'H';
 
-        return exec("mklink /{$mode} ".escapeshellarg($link).' '.escapeshellarg($this->path($target)));
+        return \exec("mklink /{$mode} " . \escapeshellarg($link) . ' ' . \escapeshellarg($this->path($target)));
     }
 
     /**
@@ -466,5 +446,22 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         }
 
         return $adapter instanceof Local;
+    }
+
+    /**
+     * Filter directory contents by type.
+     *
+     * @param  array $contents
+     * @return array
+     */
+    private function filterContentsByType($contents): array
+    {
+        $result = [];
+
+        foreach ($contents as $files) {
+            $result[] = $files['path'];
+        }
+
+        return $result;
     }
 }

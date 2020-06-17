@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Interfaces;
@@ -36,22 +34,22 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Prepend to a file.
      *
-     * @param  string  $path
-     * @param  string  $data
-     * @param  string  $separator
+     * @param  string $path
+     * @param  string $data
+     * @param  string $separator
      * @return bool
      */
-    public function prepend($path, $data, $separator = PHP_EOL): bool;
+    public function prepend($path, $data, $separator = \PHP_EOL): bool;
 
     /**
      * Append to a file.
      *
-     * @param  string  $path
-     * @param  string  $data
-     * @param  string  $separator
+     * @param  string $path
+     * @param  string $data
+     * @param  string $separator
      * @return bool
      */
-    public function append($path, $data, $separator = PHP_EOL): bool;
+    public function append($path, $data, $separator = \PHP_EOL): bool;
 
     /**
      * Method has to return local uri which can be used in require and include statements.
@@ -69,16 +67,15 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @param string $filename
      * @param string $destination
      *
-     * @return bool
-     *
      * @throws FileNotFoundException
+     * @return bool
      */
     public function move(string $filename, string $destination): bool;
 
     /**
      * Get contents of a file with shared access.
      *
-     * @param  string  $path
+     * @param string $path
      *
      * @return string
      */
@@ -88,7 +85,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * Touch file to update it's timeUpdated value or create new file. Location must exist.
      *
      * @param string $filename
-     * @param int    $mode When NULL class can pick default mode.
+     * @param int    $mode     when NULL class can pick default mode
      */
     public function touch(string $filename, int $mode = null);
 
@@ -106,9 +103,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @param string $filename
      *
-     * @return string
-     *
      * @throws FileNotFoundException
+     * @return string
      */
     public function checksum(string $filename): string;
 
@@ -131,9 +127,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      *
      * @param string $filename
      *
-     * @return int|bool
-     *
      * @throws FileNotFoundException
+     * @return bool|int
      */
     public function getPermissions(string $filename): int;
 
@@ -150,8 +145,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Get relative location based on absolute path.
      *
-     * @param string $path Original file or directory location (to).
-     * @param string $from Path will be converted to be relative to this directory (from).
+     * @param string $path original file or directory location (to)
+     * @param string $from path will be converted to be relative to this directory (from)
      *
      * @return string
      */
@@ -160,7 +155,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Get the full path for the file at the given "short" path.
      *
-     * @param  string  $path
+     * @param string $path
      *
      * @return string
      */
@@ -169,8 +164,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Find path names matching a given pattern.
      *
-     * @param  string  $pattern
-     * @param  int     $flags
+     * @param  string $pattern
+     * @param  int    $flags
      * @return array
      */
     public function glob(string $pattern, int $flags = 0): array;
@@ -178,8 +173,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
      *
-     * @param  string  $target
-     * @param  string  $link
+     * @param string $target
+     * @param string $link
      *
      * @return mixed
      */
@@ -188,8 +183,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Get an array of all files in a directory.
      *
-     * @param  string|null  $directory
-     * @param  bool  $recursive
+     * @param null|string $directory
+     * @param bool        $recursive
      *
      * @return array
      */
@@ -198,8 +193,8 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Get all of the directories within a given directory.
      *
-     * @param  string|null  $directory
-     * @param  bool  $recursive
+     * @param null|string $directory
+     * @param bool        $recursive
      *
      * @return array
      */
@@ -208,7 +203,7 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     /**
      * Get a connection instance.
      *
-     * @param string|null $name
+     * @param null|string $name
      *
      * @return FileManagerInterface
      */

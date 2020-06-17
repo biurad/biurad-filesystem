@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Streams;
@@ -32,21 +30,27 @@ use SplFileObject;
 class FlyStreamBuffer implements StreamInterface
 {
     private $filesystem;
+
     private $key;
+
     private $mode;
+
     private $content;
+
     private $numBytes;
+
     private $position;
+
     private $synchronized;
 
     /**
      * @param FileManagerInterface $filesystem The filesystem managing the file to stream
-     * @param string $key The file key
+     * @param string               $key        The file key
      */
     public function __construct(FileManagerInterface $filesystem, $key)
     {
         $this->filesystem = $filesystem;
-        $this->key = $key;
+        $this->key        = $key;
     }
 
     /**
@@ -61,8 +65,16 @@ class FlyStreamBuffer implements StreamInterface
             return false;
         }
 
-        if (($exists && !$mode->allowsExistingFileOpening())
-            || (!$exists && !$mode->allowsNewFileOpening())) {
+        if (
+            (
+                $exists &&
+                !$mode->allowsExistingFileOpening()
+            ) ||
+            (
+                !$exists &&
+                !$mode->allowsNewFileOpening()
+            )
+        ) {
             return false;
         }
 
@@ -74,7 +86,7 @@ class FlyStreamBuffer implements StreamInterface
             $this->content = $this->filesystem->isDirectory($this->key) ? '' : $this->filesystem->read($this->key);
         }
 
-        $this->numBytes = mb_strlen($this->content, '8bit');
+        $this->numBytes = \mb_strlen($this->content, '8bit');
         $this->position = $mode->impliesPositioningCursorAtTheEnd() ? $this->numBytes : 0;
 
         $this->synchronized = true;
@@ -88,8 +100,8 @@ class FlyStreamBuffer implements StreamInterface
             throw new LogicException('The stream does not allow read.');
         }
 
-        $chunk = substr($this->content, $this->position, $count);
-        $this->position += mb_strlen($chunk, '8bit');
+        $chunk = \substr($this->content, $this->position, $count);
+        $this->position += \mb_strlen($chunk, '8bit');
 
         return $chunk;
     }
@@ -100,48 +112,52 @@ class FlyStreamBuffer implements StreamInterface
             throw new LogicException('The stream does not allow write.');
         }
 
-        $numWrittenBytes = mb_strlen($data, '8bit');
+        $numWrittenBytes = \mb_strlen($data, '8bit');
 
         $newPosition = $this->position + $numWrittenBytes;
         $newNumBytes = $newPosition > $this->numBytes ? $newPosition : $this->numBytes;
 
         if ($this->eof()) {
             $this->numBytes += $numWrittenBytes;
+
             if ($this->hasNewContentAtFurtherPosition()) {
-                $data = str_pad($data, $this->position + strlen($data), ' ', STR_PAD_LEFT);
+                $data = \str_pad($data, $this->position + \strlen($data), ' ', \STR_PAD_LEFT);
             }
             $this->content .= $data;
         } else {
-            $before = substr($this->content, 0, $this->position);
-            $after = $newNumBytes > $newPosition ? substr($this->content, $newPosition) : '';
-            $this->content = $before.$data.$after;
+            $before        = \substr($this->content, 0, $this->position);
+            $after         = $newNumBytes > $newPosition ? \substr($this->content, $newPosition) : '';
+            $this->content = $before . $data . $after;
         }
 
-        $this->position = $newPosition;
-        $this->numBytes = $newNumBytes;
+        $this->position     = $newPosition;
+        $this->numBytes     = $newNumBytes;
         $this->synchronized = false;
 
         return $numWrittenBytes;
     }
 
-    public function close()
+    public function close(): void
     {
         if (!$this->synchronized) {
             $this->flush();
         }
     }
 
-    public function seek($offset, $whence = SEEK_SET)
+    public function seek($offset, $whence = \SEEK_SET)
     {
         switch ($whence) {
-            case SEEK_SET:
+            case \SEEK_SET:
                 $this->position = $offset;
+
                 break;
-            case SEEK_CUR:
+            case \SEEK_CUR:
                 $this->position += $offset;
+
                 break;
-            case SEEK_END:
+            case \SEEK_END:
                 $this->position = $this->numBytes + $offset;
+
                 break;
             default:
                 return false;
@@ -183,28 +199,28 @@ class FlyStreamBuffer implements StreamInterface
     {
         if ($this->filesystem->has($this->key)) {
             $isDirectory = $this->filesystem->isDirectory($this->key);
-            $time = $this->filesystem->getTimestamp($this->key);
-            $path = $this->filesystem->path($this->key);
-            $isLocal = $this->isLocalAdapter();
-            $mode = ! $isDirectory ? (new SplFileObject($path))->fstat()['mode'] : 16893;
+            $time        = $this->filesystem->getTimestamp($this->key);
+            $path        = $this->filesystem->path($this->key);
+            $isLocal     = $this->isLocalAdapter();
+            $mode        = !$isDirectory ? (new SplFileObject($path))->fstat()['mode'] : 16893;
 
             $stats = [
-                'dev' => 1,
-                'ino' => 0,
-                'mode' => !$isLocal ? ($isDirectory ? 16893 : 33204) : $mode,
-                'nlink' => 1,
-                'uid' => 0,
-                'gid' => 0,
-                'rdev' => 0,
-                'size' => $isDirectory ? 0 : $this->filesystem->getSize($this->key),
-                'atime' => !$isLocal ? $time : fileatime($path),
-                'mtime' => $time,
-                'ctime' => !$isLocal ? $time : filectime($path),
+                'dev'     => 1,
+                'ino'     => 0,
+                'mode'    => !$isLocal ? ($isDirectory ? 16893 : 33204) : $mode,
+                'nlink'   => 1,
+                'uid'     => 0,
+                'gid'     => 0,
+                'rdev'    => 0,
+                'size'    => $isDirectory ? 0 : $this->filesystem->getSize($this->key),
+                'atime'   => !$isLocal ? $time : \fileatime($path),
+                'mtime'   => $time,
+                'ctime'   => !$isLocal ? $time : \filectime($path),
                 'blksize' => -1,
-                'blocks' => -1,
+                'blocks'  => -1,
             ];
 
-            return array_merge(array_values($stats), $stats);
+            return \array_merge(\array_values($stats), $stats);
         }
 
         return false;
@@ -236,7 +252,7 @@ class FlyStreamBuffer implements StreamInterface
     public function opendir($path)
     {
         if ($this->isLocalAdapter()) {
-            return opendir($this->filesystem->path($this->key));
+            return \opendir($this->filesystem->path($this->key));
         }
 
         return $path;
@@ -250,7 +266,11 @@ class FlyStreamBuffer implements StreamInterface
         try {
             return $this->filesystem->readStream($this->key);
         } catch (Exception $e) {
-            throw new WrapperException('Sorry, doesn\'t support reading directory on remote connection, use local storage instead.', 0, $e);
+            throw new WrapperException(
+                'Sorry, doesn\'t support reading directory on remote connection, use local storage instead.',
+                0,
+                $e
+            );
         }
     }
 
@@ -291,7 +311,7 @@ class FlyStreamBuffer implements StreamInterface
     }
 
     /**
-     * @param string $content   Empty string by default
+     * @param string $content Empty string by default
      *
      * @return string
      */

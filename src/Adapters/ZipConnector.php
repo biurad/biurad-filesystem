@@ -3,23 +3,22 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use InvalidArgumentException;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 /**
@@ -48,17 +47,17 @@ class ZipConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string[]
      */
     protected function getConfig(array $config)
     {
-        if (!array_key_exists('path', $config)) {
-            throw new \InvalidArgumentException('The zip connector requires path configuration.');
+        if (!\array_key_exists('path', $config)) {
+            throw new InvalidArgumentException('The zip connector requires path configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['path']));
+        return \array_intersect_key($config, \array_flip(['path']));
     }
 
     /**

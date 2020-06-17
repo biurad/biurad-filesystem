@@ -1,5 +1,19 @@
 <?php
-/** @noinspection StaticClosureCanBeUsedInspection */
+
+declare(strict_types=1);
+
+/*
+ * This file is part of BiuradPHP opensource projects.
+ *
+ * PHP version 7.1 and above required
+ *
+ * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
+ * @copyright 2019 Biurad Group (https://biurad.com/)
+ * @license   https://opensource.org/licenses/BSD-3-Clause License
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 /*
  * This code is under BSD 3-Clause "New" or "Revised" License.
@@ -47,9 +61,9 @@ abstract class FilesystemTestCase extends TestCase
 
     protected function setUp(): void
     {
-        $this->workspace = __DIR__. DIRECTORY_SEPARATOR.'Fixtures';
+        $this->workspace = __DIR__ . \DIRECTORY_SEPARATOR . 'Fixtures';
 
-        $this->filesystem = function (FileConfig $config, AdapterInterface & $driver) {
+        $this->filesystem = function (FileConfig $config, AdapterInterface &$driver) {
             return new FileManager($driver, $config);
         };
     }
@@ -68,7 +82,7 @@ abstract class FilesystemTestCase extends TestCase
 
     protected function getFlysystemCache(AbstractCache $cache = null): FileManagerInterface
     {
-        $driver = new CachedAdapter($this->getAdapter(), $cache ?? new Memory);
+        $driver = new CachedAdapter($this->getAdapter(), $cache ?? new Memory());
 
         return ($this->filesystem)($this->getConfig(), $driver);
     }

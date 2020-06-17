@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
@@ -40,7 +38,7 @@ class GridFSConnector implements ConnectorInterface
      */
     public function connect(array $config)
     {
-        $auth = $this->getAuth($config);
+        $auth   = $this->getAuth($config);
         $client = $this->getClient($auth);
         $config = $this->getConfig($config);
 
@@ -52,16 +50,16 @@ class GridFSConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @return string[]
      * @throws InvalidArgumentException
+     * @return string[]
      */
     protected function getAuth(array $config)
     {
-        if (!array_key_exists('server', $config)) {
+        if (!\array_key_exists('server', $config)) {
             throw new InvalidArgumentException('The gridfs connector requires server configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['server']));
+        return \array_intersect_key($config, \array_flip(['server']));
     }
 
     /**
@@ -85,18 +83,18 @@ class GridFSConnector implements ConnectorInterface
      */
     protected function getConfig(array $config)
     {
-        if (!array_key_exists('database', $config)) {
-            throw new \InvalidArgumentException('The gridfs connector requires database configuration.');
+        if (!\array_key_exists('database', $config)) {
+            throw new InvalidArgumentException('The gridfs connector requires database configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['database']));
+        return \array_intersect_key($config, \array_flip(['database']));
     }
 
     /**
      * Get the gridfs adapter.
      *
      * @param MongoClient $client
-     * @param string[]     $config
+     * @param string[]    $config
      *
      * @return GridFSAdapter
      */

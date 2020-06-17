@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
@@ -57,11 +55,11 @@ class LocalConnector implements ConnectorInterface
      */
     protected function getConfig(array $config)
     {
-        if (!array_key_exists('path', $config)) {
+        if (!\array_key_exists('path', $config)) {
             throw new InvalidArgumentException('The local connector requires path configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['path', 'write_flags', 'link_handling', 'permissions']));
+        return \array_intersect_key($config, \array_flip(['path', 'write_flags', 'link_handling', 'permissions']));
     }
 
     /**
@@ -74,10 +72,10 @@ class LocalConnector implements ConnectorInterface
     protected function getAdapter(array $config)
     {
         // Pull parameters from config and set defaults for optional values
-        $path = $config['path'];
-        $writeFlags = array_get($config, 'write_flags', LOCK_EX);
+        $path         = $config['path'];
+        $writeFlags   = array_get($config, 'write_flags', \LOCK_EX);
         $linkHandling = array_get($config, 'link_handling', Local::DISALLOW_LINKS);
-        $permissions = array_get($config, 'permissions', []);
+        $permissions  = array_get($config, 'permissions', []);
 
         return new Local($path, $writeFlags, $linkHandling, $permissions);
     }

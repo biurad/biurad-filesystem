@@ -1,22 +1,18 @@
 <?php
-/** @noinspection PhpUnusedParameterInspection */
-/** @noinspection PhpUndefinedMethodInspection */
 
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager;
@@ -40,20 +36,22 @@ class StreamWrapper
     private static $filesystemMap;
 
     private $stream;
+
     private $dirResource;
+
     private $tempFilesystem;
 
     /**
      * Defines the filesystem map.
      *
-     * @param CloudConnectionInterface $map
+     * @param  CloudConnectionInterface $map
      * @return StreamWrapper
      */
     public static function setFilesystemMap(CloudConnectionInterface $map): StreamWrapper
     {
         static::$filesystemMap = $map;
 
-        return new self;
+        return new self();
     }
 
     /**
@@ -77,35 +75,12 @@ class StreamWrapper
         static::streamWrapperUnregister($scheme);
 
         if (!static::streamWrapperRegister($scheme, __CLASS__)) {
-            throw new RuntimeException(sprintf('Could not register stream wrapper class %s for scheme %s.',
-                __CLASS__, $scheme
+            throw new RuntimeException(\sprintf(
+                'Could not register stream wrapper class %s for scheme %s.',
+                __CLASS__,
+                $scheme
             ));
         }
-    }
-
-    /**
-     * @param string $scheme - protocol scheme
-     *
-     * @return bool
-     */
-    protected static function streamWrapperUnregister($scheme): bool
-    {
-        if (in_array($scheme, stream_get_wrappers(), true)) {
-            return stream_wrapper_unregister($scheme);
-        }
-
-        return false;
-    }
-
-    /**
-     * @param string $scheme    - protocol scheme
-     * @param string $className
-     *
-     * @return bool
-     */
-    protected static function streamWrapperRegister($scheme, $className): bool
-    {
-        return stream_wrapper_register($scheme, $className);
     }
 
     public function stream_open($path, $mode)
@@ -143,7 +118,7 @@ class StreamWrapper
         return 0;
     }
 
-    public function stream_close()
+    public function stream_close(): void
     {
         if ($this->stream) {
             $this->stream->close();
@@ -168,7 +143,7 @@ class StreamWrapper
      *
      * @return bool
      */
-    public function stream_seek($offset, $whence = SEEK_SET)
+    public function stream_seek($offset, $whence = \SEEK_SET)
     {
         if ($this->stream) {
             return $this->stream->seek($offset, $whence);
@@ -214,12 +189,12 @@ class StreamWrapper
     }
 
     /**
-     * @param mixed $operation
+     * @param  mixed $operation
      * @return bool
      */
     public function stream_lock($operation)
     {
-        return flock($this->stream, $operation);
+        return \flock($this->stream, $operation);
     }
 
     /**
@@ -243,14 +218,15 @@ class StreamWrapper
     }
 
     /**
-     * @param string $path
-     * @param resource|null $context
+     * @param string        $path
+     * @param null|resource $context
      *
      * @return mixed
      */
     public function dir_opendir($path, $context = null)
     {
         $this->tempFilesystem = $this->createStream($path, true);
+
         return $this->dirResource = $this->createStream($path)->opendir($path);
     }
 
@@ -260,16 +236,16 @@ class StreamWrapper
     public function dir_readdir()
     {
         if ($this->isLocalAdapter($this->tempFilesystem)) {
-            return readdir($this->dirResource);
+            return \readdir($this->dirResource);
         }
 
         return $this->createStream($this->dirResource)->readdir();
     }
 
     /**
-     * @param string $path
-     * @param int $mode
-     * @param array $options
+     * @param  string $path
+     * @param  int    $mode
+     * @param  array  $options
      * @return mixed
      */
     public function mkdir($path, $mode, $options)
@@ -278,8 +254,8 @@ class StreamWrapper
     }
 
     /**
-     * @param string $dirname
-     * @param resource|null $context
+     * @param  string        $dirname
+     * @param  null|resource $context
      * @return mixed
      */
     public function rmdir($dirname, $context = null)
@@ -306,7 +282,7 @@ class StreamWrapper
     }
 
     /**
-     * @param mixed $castAs
+     * @param  mixed $castAs
      * @return mixed
      */
     public function stream_cast($castAs)
@@ -318,32 +294,57 @@ class StreamWrapper
         return false;
     }
 
+    /**
+     * @param string $scheme - protocol scheme
+     *
+     * @return bool
+     */
+    protected static function streamWrapperUnregister($scheme): bool
+    {
+        if (\in_array($scheme, \stream_get_wrappers(), true)) {
+            return \stream_wrapper_unregister($scheme);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $scheme    - protocol scheme
+     * @param string $className
+     *
+     * @return bool
+     */
+    protected static function streamWrapperRegister($scheme, $className): bool
+    {
+        return \stream_wrapper_register($scheme, $className);
+    }
+
     protected function createStream($path, $stream = false)
     {
-        $parts = array_merge(
-            array(
-                'scheme' => null,
-                'host' => null,
-                'path' => null,
-                'query' => null,
+        $parts = \array_merge(
+            [
+                'scheme'   => null,
+                'host'     => null,
+                'path'     => null,
+                'query'    => null,
                 'fragment' => null,
-            ),
-            parse_url($path) ?: array()
+            ],
+            \parse_url($path) ?: []
         );
 
         $domain = $parts['host'];
-        $key = (empty($parts['path']) || '/' === $parts['path']) ? '/' : substr($parts['path'], 1);
+        $key    = (empty($parts['path']) || '/' === $parts['path']) ? '/' : \substr($parts['path'], 1);
 
         if (null !== $parts['query']) {
-            $key .= '?'.$parts['query'];
+            $key .= '?' . $parts['query'];
         }
 
         if (null !== $parts['fragment']) {
-            $key .= '#'.$parts['fragment'];
+            $key .= '#' . $parts['fragment'];
         }
 
         if (empty($domain) || empty($key)) {
-            throw new InvalidArgumentException(sprintf('The specified path (%s) is invalid.', $path));
+            throw new InvalidArgumentException(\sprintf('The specified path (%s) is invalid.', $path));
         }
 
         $filesystem = static::getFilesystemMap()->makeConnection($domain);
@@ -361,7 +362,7 @@ class StreamWrapper
     }
 
     /**
-     * @param CachedAdapter|AdapterInterface $filesystem
+     * @param  AdapterInterface|CachedAdapter $filesystem
      * @return bool
      */
     protected function isLocalAdapter($filesystem): bool

@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
@@ -40,7 +38,7 @@ class AzureConnector implements ConnectorInterface
      */
     public function connect(array $config)
     {
-        $auth = $this->getAuth($config);
+        $auth   = $this->getAuth($config);
         $client = $this->getClient($auth);
         $config = $this->getConfig($config);
 
@@ -58,11 +56,11 @@ class AzureConnector implements ConnectorInterface
      */
     protected function getAuth(array $config)
     {
-        if (!array_key_exists('account-name', $config) || !array_key_exists('api-key', $config)) {
+        if (!\array_key_exists('account-name', $config) || !\array_key_exists('api-key', $config)) {
             throw new InvalidArgumentException('The azure connector requires authentication.');
         }
 
-        return array_intersect_key($config, array_flip(['account-name', 'api-key']));
+        return \array_intersect_key($config, \array_flip(['account-name', 'api-key']));
     }
 
     /**
@@ -74,7 +72,11 @@ class AzureConnector implements ConnectorInterface
      */
     protected function getClient(array $auth)
     {
-        $endpoint = sprintf('DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s', $auth['account-name'], $auth['api-key']);
+        $endpoint = \sprintf(
+            'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s',
+            $auth['account-name'],
+            $auth['api-key']
+        );
 
         return BlobRestProxy::createBlobService($endpoint);
     }
@@ -88,18 +90,18 @@ class AzureConnector implements ConnectorInterface
      */
     protected function getConfig(array $config)
     {
-        if (!array_key_exists('container', $config)) {
+        if (!\array_key_exists('container', $config)) {
             throw new InvalidArgumentException('The azure connector requires container configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['container']));
+        return \array_intersect_key($config, \array_flip(['container']));
     }
 
     /**
      * Get the container adapter.
      *
      * @param BlobRestProxy $client
-     * @param string[] $config
+     * @param string[]      $config
      *
      * @return AzureBlobStorageAdapter
      */

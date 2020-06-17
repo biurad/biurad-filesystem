@@ -3,18 +3,16 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
@@ -41,7 +39,7 @@ class AwsS3Connector implements ConnectorInterface
      */
     public function connect(array $config)
     {
-        $auth = $this->getAuth($config);
+        $auth   = $this->getAuth($config);
         $client = $this->getClient($auth);
         $config = $this->getConfig($config);
 
@@ -59,11 +57,11 @@ class AwsS3Connector implements ConnectorInterface
      */
     protected function getAuth(array $config)
     {
-        if (!array_key_exists('version', $config)) {
+        if (!\array_key_exists('version', $config)) {
             throw new InvalidArgumentException('The awss3 connector requires version configuration.');
         }
 
-        if (!array_key_exists('region', $config)) {
+        if (!\array_key_exists('region', $config)) {
             throw new InvalidArgumentException('The awss3 connector requires region configuration.');
         }
 
@@ -73,25 +71,25 @@ class AwsS3Connector implements ConnectorInterface
         ];
 
         if (isset($config['key'])) {
-            if (!array_key_exists('secret', $config)) {
+            if (!\array_key_exists('secret', $config)) {
                 throw new InvalidArgumentException('The awss3 connector requires authentication.');
             }
-            $auth['credentials'] = array_intersect_key($config, array_flip(['key', 'secret']));
+            $auth['credentials'] = \array_intersect_key($config, \array_flip(['key', 'secret']));
         }
 
-        if (array_key_exists('bucket_endpoint', $config)) {
+        if (\array_key_exists('bucket_endpoint', $config)) {
             $auth['bucket_endpoint'] = $config['bucket_endpoint'];
         }
 
-        if (array_key_exists('calculate_md5', $config)) {
+        if (\array_key_exists('calculate_md5', $config)) {
             $auth['calculate_md5'] = $config['calculate_md5'];
         }
 
-        if (array_key_exists('scheme', $config)) {
+        if (\array_key_exists('scheme', $config)) {
             $auth['scheme'] = $config['scheme'];
         }
 
-        if (array_key_exists('endpoint', $config)) {
+        if (\array_key_exists('endpoint', $config)) {
             $auth['endpoint'] = $config['endpoint'];
         }
 
@@ -121,15 +119,15 @@ class AwsS3Connector implements ConnectorInterface
      */
     protected function getConfig(array $config)
     {
-        if (!array_key_exists('prefix', $config)) {
+        if (!\array_key_exists('prefix', $config)) {
             $config['prefix'] = null;
         }
 
-        if (!array_key_exists('bucket', $config)) {
+        if (!\array_key_exists('bucket', $config)) {
             throw new InvalidArgumentException('The awss3 connector requires bucket configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['bucket', 'prefix']));
+        return \array_intersect_key($config, \array_flip(['bucket', 'prefix']));
     }
 
     /**

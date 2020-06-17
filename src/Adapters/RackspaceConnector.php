@@ -3,23 +3,22 @@
 declare(strict_types=1);
 
 /*
- * This code is under BSD 3-Clause "New" or "Revised" License.
+ * This file is part of BiuradPHP opensource projects.
  *
- * PHP version 7 and above required
- *
- * @category  FileManager
+ * PHP version 7.1 and above required
  *
  * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
  * @copyright 2019 Biurad Group (https://biurad.com/)
  * @license   https://opensource.org/licenses/BSD-3-Clause License
  *
- * @link      https://www.biurad.com/projects/filemanager
- * @since     Version 0.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use InvalidArgumentException;
 use League\Flysystem\Rackspace\RackspaceAdapter;
 use OpenCloud\ObjectStore\Resource\Container;
 use OpenCloud\Rackspace as OpenStackRackspace;
@@ -44,7 +43,7 @@ class RackspaceConnector implements ConnectorInterface
      */
     public function connect(array $config)
     {
-        $auth = $this->getAuth($config);
+        $auth   = $this->getAuth($config);
         $client = $this->getClient($auth);
 
         return $this->getAdapter($client);
@@ -55,29 +54,32 @@ class RackspaceConnector implements ConnectorInterface
      *
      * @param string[] $config
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string[]
      */
     protected function getAuth(array $config)
     {
-        if (!array_key_exists('username', $config) || !array_key_exists('apiKey', $config)) {
-            throw new \InvalidArgumentException('The rackspace connector requires authentication.');
+        if (!\array_key_exists('username', $config) || !\array_key_exists('apiKey', $config)) {
+            throw new InvalidArgumentException('The rackspace connector requires authentication.');
         }
 
-        if (!array_key_exists('endpoint', $config)) {
-            throw new \InvalidArgumentException('The rackspace connector requires endpoint configuration.');
+        if (!\array_key_exists('endpoint', $config)) {
+            throw new InvalidArgumentException('The rackspace connector requires endpoint configuration.');
         }
 
-        if (!array_key_exists('region', $config)) {
-            throw new \InvalidArgumentException('The rackspace connector requires region configuration.');
+        if (!\array_key_exists('region', $config)) {
+            throw new InvalidArgumentException('The rackspace connector requires region configuration.');
         }
 
-        if (!array_key_exists('container', $config)) {
-            throw new \InvalidArgumentException('The rackspace connector requires container configuration.');
+        if (!\array_key_exists('container', $config)) {
+            throw new InvalidArgumentException('The rackspace connector requires container configuration.');
         }
 
-        return array_intersect_key($config, array_flip(['username', 'apiKey', 'endpoint', 'region', 'container', 'internal']));
+        return \array_intersect_key(
+            $config,
+            \array_flip(['username', 'apiKey', 'endpoint', 'region', 'container', 'internal'])
+        );
     }
 
     /**
