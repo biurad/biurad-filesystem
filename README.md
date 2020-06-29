@@ -10,7 +10,7 @@ The recommended way to install FileManager is via Composer:
 composer require biurad/biurad-flysystem
 ```
 
-It requires PHP version 7.0 and supports PHP up to 7.4. The dev-master version requires PHP 7.1.
+It requires PHP version 7.1 and supports PHP up to 7.4. The dev-master version requires PHP 7.2.
 
 ## How To Use
 
@@ -76,7 +76,7 @@ You're free to use this package, but if it makes it to your production environme
 
 Post Here: [Project Patreons - https://patreons.biurad.com](https://patreons.biurad.com)
 
-We publish all received request's on our website;
+We publish all received request's on our website.
 
 ## Credits
 
@@ -96,4 +96,3 @@ Reach out and support us on [Patreon](https://www.patreon.com/biurad). All pledg
 ## License
 
 The BSD-3-Clause . Please see [License File](LICENSE.md) for more information.
-

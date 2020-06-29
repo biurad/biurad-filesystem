@@ -7,6 +7,7 @@ All notable changes to `biurad/biurad-flysystem` will be documented in this file
 - Added ability to add custom adapter in BiuradPHP and Nette Framework
 - Added phpunit tests
 - Updated php files header doc
+- Updated README.md file
 - Improved code complexity and performance using cs fixtures
 - Fixed errors with missing functions from biurad/biurad-helpers
 
