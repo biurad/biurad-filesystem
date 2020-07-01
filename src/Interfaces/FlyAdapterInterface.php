@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Interfaces;
 
 use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 
 /**
  * This is the connector interface.
