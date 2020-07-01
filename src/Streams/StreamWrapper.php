@@ -15,9 +15,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager;
+namespace BiuradPHP\FileManager\Streams;
 
-use BiuradPHP\FileManager\Interfaces\CloudConnectionInterface;
+use BiuradPHP\FileManager\Interfaces\FlysystemMapInterface;
 use BiuradPHP\FileManager\Streams\StreamMode;
 use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
@@ -44,10 +44,10 @@ class StreamWrapper
     /**
      * Defines the filesystem map.
      *
-     * @param  CloudConnectionInterface $map
+     * @param  FlysystemMapInterface $map
      * @return StreamWrapper
      */
-    public static function setFilesystemMap(CloudConnectionInterface $map): StreamWrapper
+    public static function setFilesystemMap(FlysystemMapInterface $map): StreamWrapper
     {
         static::$filesystemMap = $map;
 
@@ -57,7 +57,7 @@ class StreamWrapper
     /**
      * Returns the filesystem map.
      *
-     * @return CloudConnectionInterface $map
+     * @return FlysystemMapInterface $map
      */
     public static function getFilesystemMap()
     {
@@ -71,7 +71,6 @@ class StreamWrapper
      */
     public static function register($scheme = 'flysystem'): void
     {
-        $scheme = self::$filesystemMap->getStreamProtocol() ?? $scheme;
         static::streamWrapperUnregister($scheme);
 
         if (!static::streamWrapperRegister($scheme, __CLASS__)) {
@@ -347,7 +346,7 @@ class StreamWrapper
             throw new InvalidArgumentException(\sprintf('The specified path (%s) is invalid.', $path));
         }
 
-        $filesystem = static::getFilesystemMap()->makeConnection($domain);
+        $filesystem = static::getFilesystemMap()->get($domain);
 
         if (false !== $stream) {
             return $filesystem;
