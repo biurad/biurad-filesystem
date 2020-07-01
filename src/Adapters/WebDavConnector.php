@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use League\Flysystem\WebDAV\WebDAVAdapter;
 use Sabre\DAV\Client;
 
@@ -26,7 +26,7 @@ use Sabre\DAV\Client;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class WebDavConnector implements ConnectorInterface
+class WebDavConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use Spatie\Dropbox\Client;
 use Spatie\FlysystemDropbox\DropboxAdapter;
@@ -27,7 +27,7 @@ use Spatie\FlysystemDropbox\DropboxAdapter;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class DropboxConnector implements ConnectorInterface
+class DropboxConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

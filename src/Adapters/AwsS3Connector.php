@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use Aws\S3\S3Client;
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 
@@ -28,7 +28,7 @@ use League\Flysystem\AwsS3v3\AwsS3Adapter;
  * @author Graham Campbell <graham@alt-three.com>
  * @author Raul Ruiz <publiux@gmail.com>
  */
-class AwsS3Connector implements ConnectorInterface
+class AwsS3Connector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

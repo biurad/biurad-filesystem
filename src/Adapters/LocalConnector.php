@@ -17,18 +17,16 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
-
-use function BiuradPHP\Support\array_get;
 
 /**
  * This is the local connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class LocalConnector implements ConnectorInterface
+class LocalConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.
@@ -73,9 +71,9 @@ class LocalConnector implements ConnectorInterface
     {
         // Pull parameters from config and set defaults for optional values
         $path         = $config['path'];
-        $writeFlags   = array_get($config, 'write_flags', \LOCK_EX);
-        $linkHandling = array_get($config, 'link_handling', Local::DISALLOW_LINKS);
-        $permissions  = array_get($config, 'permissions', []);
+        $writeFlags   = $config['write_flags'] ?: \LOCK_EX;
+        $linkHandling = $config['link_handling'] ?: Local::DISALLOW_LINKS;
+        $permissions  = $config['permissions'] ?: [];
 
         return new Local($path, $writeFlags, $linkHandling, $permissions);
     }

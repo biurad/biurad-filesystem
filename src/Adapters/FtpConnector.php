@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
 
 /**
@@ -25,7 +25,7 @@ use League\Flysystem\Adapter\Ftp as FtpAdapter;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class FtpConnector implements ConnectorInterface
+class FtpConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

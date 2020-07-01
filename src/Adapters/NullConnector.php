@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use League\Flysystem\Adapter\NullAdapter;
 
 /**
@@ -25,7 +25,7 @@ use League\Flysystem\Adapter\NullAdapter;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class NullConnector implements ConnectorInterface
+class NullConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

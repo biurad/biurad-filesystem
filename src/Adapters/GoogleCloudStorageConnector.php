@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use Google\Cloud\Storage\StorageClient;
 use InvalidArgumentException;
 use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
@@ -28,7 +28,7 @@ use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
  * @author Graham Campbell <graham@alt-three.com>
  * @author Nir Radian <nirradi@gmail.com>
  */
-class GoogleCloudStorageConnector implements ConnectorInterface
+class GoogleCloudStorageConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

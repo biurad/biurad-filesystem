@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AdapterInterface;
 
@@ -50,9 +50,9 @@ class ConnectionFactory
      * @param string $config
      *
      * @throws InvalidArgumentException
-     * @return ConnectorInterface
+     * @return FlyAdapterInterface
      */
-    public static function createConnector(?string $config): ConnectorInterface
+    public static function createConnector(?string $config): FlyAdapterInterface
     {
         // Custom Adapters...
         if (null !== $config && isset(self::$adapters[$config])) {
@@ -96,7 +96,7 @@ class ConnectionFactory
      * @param string             $name
      * @param ConnectorInterface $adapter
      */
-    public function addAdapter(string $name, ConnectorInterface $adapter): void
+    public function addAdapter(string $name, FlyAdapterInterface $adapter): void
     {
         self::$adapters[$name] = $adapter;
     }

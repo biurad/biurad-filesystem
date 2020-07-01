@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
@@ -27,7 +27,7 @@ use MicrosoftAzure\Storage\Blob\BlobRestProxy;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class AzureConnector implements ConnectorInterface
+class AzureConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

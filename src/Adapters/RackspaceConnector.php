@@ -17,20 +17,18 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\Rackspace\RackspaceAdapter;
 use OpenCloud\ObjectStore\Resource\Container;
 use OpenCloud\Rackspace as OpenStackRackspace;
-
-use function BiuradPHP\Support\array_get;
 
 /**
  * This is the rackspace connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class RackspaceConnector implements ConnectorInterface
+class RackspaceConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.
@@ -96,7 +94,7 @@ class RackspaceConnector implements ConnectorInterface
             'apiKey'   => $auth['apiKey'],
         ]);
 
-        $urlType = array_get($auth, 'internal', false) ? 'internalURL' : 'publicURL';
+        $urlType = isset($auth['internal']) ? 'internalURL' : 'publicURL';
 
         return $client->objectStoreService('cloudFiles', $auth['region'], $urlType)->getContainer($auth['container']);
     }

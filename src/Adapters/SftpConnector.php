@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use League\Flysystem\Sftp\SftpAdapter;
 
 /**
@@ -25,7 +25,7 @@ use League\Flysystem\Sftp\SftpAdapter;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class SftpConnector implements ConnectorInterface
+class SftpConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.

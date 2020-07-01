@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\GridFS\GridFSAdapter;
 use MongoClient;
@@ -27,7 +27,7 @@ use MongoClient;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-class GridFSConnector implements ConnectorInterface
+class GridFSConnector implements FlyAdapterInterface
 {
     /**
      * Establish an adapter connection.
