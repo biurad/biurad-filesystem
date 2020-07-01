@@ -24,7 +24,7 @@ use League\Flysystem\AdapterInterface;
  *
  * @author Graham Campbell <graham@alt-three.com>
  */
-interface ConnectorInterface
+interface FlyAdapterInterface
 {
     /**
      * Establish a connection.
