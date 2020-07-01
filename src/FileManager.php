@@ -17,68 +17,50 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager;
 
-use BiuradPHP\FileManager\Config\FileConfig;
-use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
+use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
 use BiuradPHP\FileManager\Interfaces\StreamableInterface;
 use BiuradPHP\FileManager\Interfaces\StreamInterface as FlyStreamInterface;
-use Exception;
+use BiuradPHP\FileManager\Plugin\ListDirectories;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
+use League\Flysystem\Config as FileConfig;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem as LeagueFilesystem;
+use League\Flysystem\Plugin;
 use League\Flysystem\Util;
-use LogicException;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Psr\Http\Message\UploadedFileInterface;
+use SplFileInfo;
 
 /**
  * Default abstraction for file management operations.
  *
- * @author    Divine Niiquaye Ibok <divineibok@gmail.com>
- * @license   BSD-3-Clause
+ * @author  Divine Niiquaye Ibok <divineibok@gmail.com>
  */
-class FileManager extends LeagueFilesystem implements FileManagerInterface, StreamableInterface
+class FileManager extends LeagueFilesystem implements FlysystemInterface, StreamableInterface
 {
     /**
      * Default file mode for this manager.
      */
     public const DEFAULT_FILE_MODE = 0664;
 
-    /** @var FileConfig */
-    private $fileConfig;
-
     /**
      * Constructor.
      *
      * @param AdapterInterface $adapter
-     * @param FileConfig       $config
+     * @param array|FileConfig $config
      */
-    public function __construct(AdapterInterface $adapter, FileConfig $config)
+    public function __construct(AdapterInterface $adapter, $config = null)
     {
-        $this->fileConfig = $config;
-
-        parent::__construct($adapter, $config->getOptions());
-    }
-
-    /**
-     * Get a connection instance.
-     *
-     * @param null|string $name
-     *
-     * @return FileManagerInterface|object
-     */
-    public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface
-    {
-        $newFly = clone $this->fileConfig;
-
-        return $newFly->makeConnection($name);
+        parent::__construct($adapter, $config);
+        $this->addDefaultPlugins();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function createStream($key): FlyStreamInterface
+    public function createStream(string $key): FlyStreamInterface
     {
         if (($adapter = $this->getAdapter()) instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
@@ -93,6 +75,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
+     *
      * @throws FileNotFoundException
      */
     public function prepend($path, $data, $separator = \PHP_EOL): bool
@@ -106,6 +89,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
+     *
      * @throws FileNotFoundException
      */
     public function append($path, $data, $separator = \PHP_EOL): bool
@@ -118,7 +102,8 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
      * @throws FileNotFoundException
      */
     public function sharedGet(string $path): string
@@ -149,20 +134,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws FileNotFoundException
-     */
-    public function localFilename(string $filename): string
-    {
-        if (!$this->has($filename)) {
-            throw new FileNotFoundException($filename);
-        }
-
-        //Since default implementation is local we are allowed to do that
-        return $this->path($filename);
-    }
-
-    /**
-     * {@inheritdoc}
      */
     public function move(string $filename, string $destination): bool
     {
@@ -181,16 +152,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         }
 
         return $this->setPermissions($filename, $mode ?? self::DEFAULT_FILE_MODE);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @throws Exception
-     */
-    public function extension(string $filename): string
-    {
-        return \strtolower(\pathinfo($this->path($filename), \PATHINFO_EXTENSION));
     }
 
     /**
@@ -218,22 +179,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
     /**
-     * Create the most normalized version for path to file or location.
-     *
-     * @param string $path file or location path
-     *
-     * @throws LogicException
-     * @return string
-     */
-    public function normalizePath(string $path): string
-    {
-        return Util::normalizePath($path);
-    }
-
-    /**
      * {@inheritdoc}
-     *
-     * @throws Exception
      */
     public function isDirectory(string $filename): bool
     {
@@ -246,8 +192,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     *
-     * @throws Exception
      */
     public function isFile(string $filename): bool
     {
@@ -259,21 +203,7 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
     }
 
     /**
-     * Find path names matching a given pattern.
-     *
-     * @param  string $pattern
-     * @param  int    $flags
-     * @return array
-     */
-    public function glob(string $pattern, int $flags = 0): array
-    {
-        return \glob($pattern, $flags);
-    }
-
-    /**
      * {@inheritdoc}
-     *
-     * @throws Exception
      */
     public function getPermissions(string $filename): int
     {
@@ -290,7 +220,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     * @throws Exception
      */
     public function setPermissions(string $filename, int $mode)
     {
@@ -306,70 +235,26 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
 
     /**
      * {@inheritdoc}
-     *
-     * @see http://stackoverflow.com/questions/2637945/getting-relative-path-from-absolute-path-in-php
-     */
-    public function relativePath(string $path, string $from): string
-    {
-        $path = Util::normalizePath($path);
-        $from = Util::normalizePath($from);
-
-        $from     = \explode('/', $from);
-        $path     = \explode('/', $path);
-        $relative = $path;
-
-        foreach ($from as $depth => $dir) {
-            //Find first non-matching dir
-            if ($dir === $path[$depth]) {
-                //Ignore this directory
-                \array_shift($relative);
-            } else {
-                //Get number of remaining dirs to $from
-                $remaining = \count($from) - $depth;
-
-                if ($remaining > 1) {
-                    //Add traversals up to first matching directory
-                    $padLength = (\count($relative) + $remaining - 1) * -1;
-                    $relative  = \array_pad($relative, $padLength, '..');
-
-                    break;
-                }
-                $relative[0] = './' . $relative[0];
-            }
-        }
-
-        return \implode('/', $relative);
-    }
-
-    /**
-     * {@inheritDoc}
      */
     public function put($path, $contents, array $config = [])
     {
-        $options = \is_string($config)
-            ? ['visibility' => $config]
-            : $config;
-
-        // If the given contents is actually a file or uploaded file instance than we will
-        // automatically store the file using a stream. This provides a convenient path
-        // for the developer to store streams without managing them manually in code.
-        if ($contents instanceof UploadedFile) {
-            return $this->putFileAs($path, $contents, $contents->hashName(), $options);
+        if ($contents instanceof UploadedFileInterface) {
+            $contents = $contents->getStream();
         }
 
         if ($contents instanceof StreamInterface) {
-            return $this->putStream($path, $contents->detach(), $options);
+            return $this->putStream($path, $contents->detach(), $config);
         }
 
         return \is_resource($contents)
-                ? $this->putStream($path, $contents, $options)
-                : parent::put($path, $contents, $options);
+                ? $this->putStream($path, $contents, $config)
+                : parent::put($path, $contents, $config);
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function putFileAs($path, $file, $name, $options = [])
+    public function putFile(string $path, SplFileInfo $file, string $name, array $options = [])
     {
         $stream = \fopen($file->getRealPath(), 'rb');
 
@@ -423,7 +308,6 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
      * @param string $target
      * @param string $link
      *
-     * @throws Exception
      * @return mixed
      */
     public function createSymlink(string $target, string $link)
@@ -448,10 +332,27 @@ class FileManager extends LeagueFilesystem implements FileManagerInterface, Stre
         return $adapter instanceof Local;
     }
 
+    private function addDefaultPlugins(): void
+    {
+        $plugins = [
+            new ListDirectories(),
+            new Plugin\ForcedCopy(),
+            new Plugin\ListFiles(),
+            new Plugin\EmptyDir(),
+            new Plugin\ListWith(),
+            new Plugin\ListPaths(),
+            new Plugin\ForcedRename(),
+            new Plugin\GetWithMetadata(),
+        ];
+
+        \array_walk($plugins, [$this, 'addPlugin']);
+    }
+
     /**
      * Filter directory contents by type.
      *
-     * @param  array $contents
+     * @param array $contents
+     *
      * @return array
      */
     private function filterContentsByType($contents): array
