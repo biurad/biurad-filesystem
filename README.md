@@ -2,6 +2,8 @@
 
 FileManager provides a powerful filesystem abstraction thanks to the wonderful [Flysystem](https://github.com/thephpleague/flysystem). PHP package by Frank de Jonge. The Flysystem integration provides simple to use drivers for working with local filesystems and Amazon S3. Even better, it's amazingly simple to switch between these storage options as the API remains the same for each system.
 
+**`Please note that you can get the documentation for this dependency on [Thephpleague Flysystem website](https://flysystem.thephpleague.com/docs)`**
+
 ## Installation
 
 The recommended way to install FileManager is via Composer:
