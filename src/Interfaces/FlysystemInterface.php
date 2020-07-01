@@ -17,19 +17,18 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
-use BiuradPHP\FileManager\Config\FileConfig;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\FilesystemInterface as LeagueFilesystemInterface;
+use SplFileInfo;
 
 /**
- * Access to hard drive or local store. Does not provide full filesystem abstractions.
+ * This provides convenience wrappers around league flysystem queries.
  *
  * @method void flushCache()
  *
  * @author Divine Niiquaye Ibok <divineibok@gmail.com>
- * @license BSD-3-Clause
  */
-interface FileManagerInterface extends LeagueFilesystemInterface
+interface FlysystemInterface extends LeagueFilesystemInterface
 {
     /**
      * Prepend to a file.
@@ -52,16 +51,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     public function append($path, $data, $separator = \PHP_EOL): bool;
 
     /**
-     * Method has to return local uri which can be used in require and include statements.
-     * Implementation is allowed to use virtual stream uris if it's not local.
-     *
-     * @param string $filename
-     *
-     * @return string
-     */
-    public function localFilename(string $filename): string;
-
-    /**
      * Move file from one location to another. Location must exist.
      *
      * @param string $filename
@@ -71,6 +60,18 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @return bool
      */
     public function move(string $filename, string $destination): bool;
+
+    /**
+     * Store the psr-7 uploaded file on the disk with a given name.
+     *
+     * @param string      $path
+     * @param SplFileInfo $file
+     * @param string      $name
+     * @param array       $options
+     *
+     * @return false|string
+     */
+    public function putFile(string $path, SplFileInfo $file, string $name, array $options = []);
 
     /**
      * Get contents of a file with shared access.
@@ -88,15 +89,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @param int    $mode     when NULL class can pick default mode
      */
     public function touch(string $filename, int $mode = null);
-
-    /**
-     * Get file extension using it's name. Simple but pretty common method.
-     *
-     * @param string $filename
-     *
-     * @return string
-     */
-    public function extension(string $filename): string;
 
     /**
      * Returns the checksum of the specified file's content.
@@ -143,16 +135,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
     public function setPermissions(string $filename, int $mode);
 
     /**
-     * Get relative location based on absolute path.
-     *
-     * @param string $path original file or directory location (to)
-     * @param string $from path will be converted to be relative to this directory (from)
-     *
-     * @return string
-     */
-    public function relativePath(string $path, string $from): string;
-
-    /**
      * Get the full path for the file at the given "short" path.
      *
      * @param string $path
@@ -160,15 +142,6 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @return string
      */
     public function path(string $path): string;
-
-    /**
-     * Find path names matching a given pattern.
-     *
-     * @param  string $pattern
-     * @param  int    $flags
-     * @return array
-     */
-    public function glob(string $pattern, int $flags = 0): array;
 
     /**
      * Create a symlink to the target file or directory. On Windows, a hard link is created if the target is a file.
@@ -199,13 +172,4 @@ interface FileManagerInterface extends LeagueFilesystemInterface
      * @return array
      */
     public function getDirectories(string $directory = null, $recursive = false): array;
-
-    /**
-     * Get a connection instance.
-     *
-     * @param null|string $name
-     *
-     * @return FileManagerInterface
-     */
-    public function createConnection(string $name = FileConfig::DEFAULT_DRIVER): FileManagerInterface;
 }
