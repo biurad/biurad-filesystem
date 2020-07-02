@@ -48,24 +48,23 @@ class ConnectionFactory
             );
         }
 
-        return self::createConnector($name)->connect($config['connections'][$name] ?? []);
+        if ($name instanceof FlyAdapterInterface) {
+            return $name->connect($config['connection']);
+        }
+
+        return self::createDefaultConnector($name)->connect($config['connections'][$name] ?? []);
     }
 
     /**
      * Create a connector instance based on the configuration.
      *
-     * @param FlyAdapterInterface|string $config
+     * @param string $config
      *
      * @throws InvalidArgumentException
      * @return FlyAdapterInterface
      */
-    public static function createConnector($config): FlyAdapterInterface
+    public static function createDefaultConnector(string $config): FlyAdapterInterface
     {
-        // Custom Adapters...
-        if ($config instanceof FlyAdapterInterface) {
-            return $config;
-        }
-
         switch ($config) {
             case 'awss3':
                 return new Adapters\AwsS3Connector();
