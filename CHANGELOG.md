@@ -12,6 +12,7 @@ All notable changes to `biurad/biurad-flysystem` will be documented in this file
 - Renamed `ConnectorInterface` to `FlyAdapterInterface`
 - Renamed `CloudConnectionInterface` to `FlysystemMapInterface`
 - Renamed `FileManagerInterface` to `FlysystemInterface`
+- Deleted `FileConfig` class, as it's unused
 - Moved `ConnectionFactory` class to base namespace
 - Moved `StreamWrapper` class under **\Streams** sub-namespace
 - Improved code complexity and performance using cs fixtures

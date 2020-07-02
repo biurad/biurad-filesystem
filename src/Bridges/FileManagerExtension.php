@@ -17,14 +17,14 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Bridges;
 
-use BiuradPHP;
-use BiuradPHP\FileManager\Config\FileConfig;
-use BiuradPHP\FileManager\FileCache;
-use BiuradPHP\FileManager\Interfaces\ConnectorInterface;
+use BiuradPHP\FileManager\ConnectionFactory;
+use BiuradPHP\FileManager\FileManager;
+use BiuradPHP\FileManager\FlysystemMap;
+use League\Flysystem\Cached\CachedAdapter;
+use League\Flysystem\Cached\Storage\Psr6Cache;
 use Nette;
-use Nette\DI\Definitions\Reference;
 use Nette\DI\Definitions\Statement;
-use Nette\Schema\Expect;
+use Psr\Cache\CacheItemInterface;
 
 class FileManagerExtension extends Nette\DI\CompilerExtension
 {
@@ -34,11 +34,18 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     public function getConfigSchema(): Nette\Schema\Schema
     {
         return Nette\Schema\Expect::structure([
-            'default'           => Nette\Schema\Expect::string()->default(FileConfig::DEFAULT_DRIVER),
-            'stream_protocol'   => Nette\Schema\Expect::string('flysystem'),
-            'caching'           => Nette\Schema\Expect::array()->default([]),
-            'adapters'          => Nette\Schema\Expect::arrayOf(Expect::string())->nullable(),
-            'connections'       => Nette\Schema\Expect::arrayOf('array')->required(),
+            'default'           => Nette\Schema\Expect::string()->default('array'),
+            'caching'           => Nette\Schema\Expect::structure([
+                'enable' => Nette\Schema\Expect::bool(false),
+                'key'    => Nette\Schema\Expect::string()->nullable(),
+                'ttl'    => Nette\Schema\Expect::string()->nullable(),
+            ])->castTo('array'),
+            'connections'       => Nette\Schema\Expect::arrayOf(
+                Nette\Schema\Expect::structure([
+                    'visibility' => Nette\Schema\Expect::anyOf('public', 'private')->default('public'),
+                    'pirate'     => Nette\Schema\Expect::scalar()->default(false),
+                ])->otherItems()->castTo('array'),
+            ),
         ])->castTo('array');
     }
 
@@ -49,43 +56,86 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     {
         $builder = $this->getContainerBuilder();
 
-        foreach ($this->config['adapters'] ?? [] as $key => $adapter) {
-            if ($builder->hasDefinition($adapter)) {
-                $adapter = new Reference($adapter);
-            } elseif (\is_subclass_of($adapter, ConnectorInterface::class)) {
-                $adapter = new Statement($adapter);
-            }
-
-            $this->config['adapters'] = \array_replace(
-                [$this->config['adapters'][$key] => $adapter],
-                [$key, $adapter]
-            );
-        }
-
-        $builder->addDefinition($this->prefix('cache'))
-            ->setFactory(FileCache::class)
-            ->setArgument('config', $this->config['caching'])
-        ;
-
-        $builder->addDefinition($this->prefix('config'))
-            ->setFactory(FileConfig::class, [$this->config])
-        ;
-
-        if (!$this->config['caching']['enable']) {
-            $builder->removeDefinition($this->prefix('cache'));
-        }
+        $builder->addDefinition($this->prefix('map'))
+            ->setFactory(FlysystemMap::class);
 
         $builder->addDefinition($this->prefix('manager'))
-            ->setFactory(BiuradPHP\FileManager\FileManager::class)
-            ->setArgument(0, new Statement(
-                [new Reference($this->prefix('config')), 'getFileAdapter'],
-                [$this->config['default']]
-            ))
-            ->addSetup(
-                'foreach (?->defaultPlugins() as $plugin) { ?->addPlugin($plugin); }',
-                [new Reference($this->prefix('config')), '@self']
-            );
+            ->setFactory(FileManager::class)
+            ->setArgument(0, new Statement([ConnectionFactory::class, 'makeAdapter'], [[]]));
 
         $builder->addAlias('flysystem', $this->prefix('manager'));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function beforeCompile(): void
+    {
+        $builder       = $this->getContainerBuilder();
+        $filesystemMap = $builder->getDefinition($this->prefix('map'));
+
+        $config      = \array_intersect_key($this->config, \array_flip(['default', 'connections']));
+        $default     = new Statement([ConnectionFactory::class, 'makeAdapter'], [$config]);
+        $adapters    = [];
+
+        foreach ($builder->findByTag(ConnectionFactory::FlY_ADAPTER_TAG) as $id => $name) {
+            $adapter = $builder->getDefinition($id)->getFactory();
+            $builder->removeDefinition($name);
+
+            $adapters[$name] = $connection = new Statement(
+                [ConnectionFactory::class, 'makeAdapter'],
+                [$this->createFlyConfig($name, $adapter)]
+            );
+            $filesystemMap->addSetup(
+                'set',
+                new Statement(FileManager::class, [$connection, $this->getFlyConfig($name)])
+            );
+        }
+
+        $adapter = $adapters[$this->config['default']] ?: $default;
+        $cache   = $this->config['caching'];
+
+        if ($cache['enable'] && \class_exists(Psr6Cache::class) && $builder->getByType(CacheItemInterface::class)) {
+            $adapter = new Statement(
+                CachedAdapter::class,
+                [$adapter, new Statement(Psr6Cache::class, [1 => $cache['key'], 2 => $cache['ttl']])]
+            );
+        }
+
+        $builder->getDefinition($this->prefix('manager'))
+            ->setArgument('config', $adapter);
+    }
+
+    /**
+     * @param string    $name
+     * @param Statement $adapter
+     *
+     * @return array
+     */
+    private function createFlyConfig(string $name, Statement $adapter): array
+    {
+        return [
+            'default'     => $adapter,
+            'connections' => [$name => $this->config['connections'][$name]],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getFlyConfig(string $name): array
+    {
+        $options = [];
+        $config  = $this->config['connection'][$name] ?: [];
+
+        if (isset($config['visibility'])) {
+            $options['visibility'] = $config['visibility'];
+        }
+
+        if (isset($config['pirate'])) {
+            $options['disable_asserts'] = $config['private'];
+        }
+
+        return $options;
     }
 }
