@@ -18,9 +18,10 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Streams;
 
 use BiuradPHP\FileManager\Exception\WrapperException;
-use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
+use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
 use BiuradPHP\FileManager\Interfaces\StreamInterface;
 use Exception;
+use League\Flysystem\Util;
 use League\Flysystem\Adapter\Local as FlyLocal;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\FileNotFoundException;
@@ -44,10 +45,10 @@ class FlyStreamBuffer implements StreamInterface
     private $synchronized;
 
     /**
-     * @param FileManagerInterface $filesystem The filesystem managing the file to stream
+     * @param FlysystemInterface $filesystem The filesystem managing the file to stream
      * @param string               $key        The file key
      */
-    public function __construct(FileManagerInterface $filesystem, $key)
+    public function __construct(FlysystemInterface $filesystem, $key)
     {
         $this->filesystem = $filesystem;
         $this->key        = $key;
@@ -86,7 +87,7 @@ class FlyStreamBuffer implements StreamInterface
             $this->content = $this->filesystem->isDirectory($this->key) ? '' : $this->filesystem->read($this->key);
         }
 
-        $this->numBytes = \mb_strlen($this->content, '8bit');
+        $this->numBytes = Util::contentSize($this->content);
         $this->position = $mode->impliesPositioningCursorAtTheEnd() ? $this->numBytes : 0;
 
         $this->synchronized = true;
@@ -101,7 +102,7 @@ class FlyStreamBuffer implements StreamInterface
         }
 
         $chunk = \substr($this->content, $this->position, $count);
-        $this->position += \mb_strlen($chunk, '8bit');
+        $this->position += Util::contentSize($chunk);
 
         return $chunk;
     }
@@ -112,7 +113,7 @@ class FlyStreamBuffer implements StreamInterface
             throw new LogicException('The stream does not allow write.');
         }
 
-        $numWrittenBytes = \mb_strlen($data, '8bit');
+        $numWrittenBytes = Util::contentSize($data);
 
         $newPosition = $this->position + $numWrittenBytes;
         $newNumBytes = $newPosition > $this->numBytes ? $newPosition : $this->numBytes;

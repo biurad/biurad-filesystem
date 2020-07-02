@@ -23,7 +23,8 @@ interface StreamableInterface
      * Create a new stream from path.
      *
      * @param  string          $key the path to use for stream
+     * 
      * @return StreamInterface
      */
-    public function createStream($key): StreamInterface;
+    public function createStream(string $key): StreamInterface;
 }
