@@ -15,7 +15,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager\Adapters;
+namespace BiuradPHP\FileManager;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
@@ -28,7 +28,7 @@ use League\Flysystem\AdapterInterface;
  */
 class ConnectionFactory
 {
-    private static $adapters = [];
+    public const FlY_ADAPTER_TAG = 'flysystem.connection';
 
     /**
      * Establish an adapter connection.
@@ -47,57 +47,46 @@ class ConnectionFactory
     /**
      * Create a connector instance based on the configuration.
      *
-     * @param string $config
+     * @param string|FlyAdapterInterface $config
      *
      * @throws InvalidArgumentException
      * @return FlyAdapterInterface
      */
-    public static function createConnector(?string $config): FlyAdapterInterface
+    public static function createConnector($config): FlyAdapterInterface
     {
         // Custom Adapters...
-        if (null !== $config && isset(self::$adapters[$config])) {
-            return self::$adapters[$config];
+        if ($config instanceof FlyAdapterInterface) {
+            return $config;
         }
 
         switch ($config) {
             case 'awss3':
-                return new AwsS3Connector();
+                return new Adapters\AwsS3Connector();
             case 'azure':
-                return new AzureConnector();
+                return new Adapters\AzureConnector();
             case 'dropbox':
-                return new DropboxConnector();
+                return new Adapters\DropboxConnector();
             case 'ftp':
-                return new FtpConnector();
+                return new Adapters\FtpConnector();
             case 'gcs':
-                return new GoogleCloudStorageConnector();
+                return new Adapters\GoogleCloudStorageConnector();
             case 'gridfs':
-                return new GridFSConnector();
+                return new Adapters\GridFSConnector();
             case 'local':
-                return new LocalConnector();
+                return new Adapters\LocalConnector();
             case 'array':
             case 'null':
-                return new NullConnector();
+                return new Adapters\NullConnector();
             case 'rackspace':
-                return new RackspaceConnector();
+                return new Adapters\RackspaceConnector();
             case 'sftp':
-                return new SftpConnector();
+                return new Adapters\SftpConnector();
             case 'webdav':
-                return new WebDavConnector();
+                return new Adapters\WebDavConnector();
             case 'zip':
-                return new ZipConnector();
+                return new Adapters\ZipConnector();
         }
 
         throw new InvalidArgumentException("Unsupported driver [{$config}].");
-    }
-
-    /**
-     * Add a new adapter to FIlemanager
-     *
-     * @param string             $name
-     * @param ConnectorInterface $adapter
-     */
-    public function addAdapter(string $name, FlyAdapterInterface $adapter): void
-    {
-        self::$adapters[$name] = $adapter;
     }
 }
