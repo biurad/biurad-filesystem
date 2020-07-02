@@ -27,6 +27,7 @@ use IteratorAggregate;
  * Associates filesystem instances to their names.
  *
  * @author Antoine Hérault <antoine.herault@gmail.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
 {
@@ -47,13 +48,13 @@ class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
     /**
      * Register the given filesystem for the specified name.
      *
-     * @param string              $name
+     * @param string             $name
      * @param FlysystemInterface $filesystem
      *
      * @throws InvalidArgumentException when the specified name contains
      *                                  forbidden characters
      */
-    public function set($name, FlysystemInterface $filesystem): void
+    public function set(string $name, FlysystemInterface $filesystem): void
     {
         if (!\preg_match('/^[-_a-zA-Z0-9]+$/', $name)) {
             throw new InvalidArgumentException(\sprintf('The specified name "%s" is not valid.', $name));
@@ -65,7 +66,7 @@ class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function has($name)
+    public function has(string $name): bool
     {
         return isset($this->filesystems[$name]);
     }
@@ -73,7 +74,7 @@ class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function get($name)
+    public function get(string $name): FlysystemInterface
     {
         if (!$this->has($name)) {
             throw new InvalidArgumentException(\sprintf('There is no filesystem defined having "%s" name.', $name));
@@ -87,7 +88,7 @@ class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
      *
      * @param string $name
      */
-    public function remove($name): void
+    public function remove(string $name): void
     {
         if (!$this->has($name)) {
             throw new InvalidArgumentException(\sprintf('Cannot remove the "%s" filesystem not defined.', $name));

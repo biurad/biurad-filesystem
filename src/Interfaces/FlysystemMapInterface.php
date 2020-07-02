@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Interfaces;
 
+use InvalidArgumentException;
+
 /**
  * Associates filesystem instances to their names.
  */
@@ -30,18 +32,16 @@ interface FlysystemMapInterface
      *
      * @return bool
      */
-    public function has($name);
+    public function has(string $name): bool;
 
     /**
      * Returns the filesystem registered for the specified name.
      *
      * @param string $name
      *
-     * @return FilesystemInterface
-     *
-     * @throw  \InvalidArgumentException when there is no filesystem registered
+     * @throws InvalidArgumentException when there is no filesystem registered
      *                                  for the specified name
+     * @return FilesystemInterface
      */
-    public function get($name);
+    public function get(string $name): FlysystemInterface;
 }
-
