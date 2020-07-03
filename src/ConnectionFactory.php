@@ -20,7 +20,6 @@ namespace BiuradPHP\FileManager;
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AdapterInterface;
-use UnexpectedValueException;
 
 /**
  * This is the adapter connection factory class.
@@ -42,17 +41,11 @@ class ConnectionFactory
     {
         $name = $config['default'] ?? 'array';
 
-        if (!\in_array($name, ['null', 'array'], true) || !isset($config['connections'][$name])) {
-            throw new UnexpectedValueException(
-                \sprintf('File adapter: %s doesn`t exists in connection -> %s', $name, $name)
-            );
-        }
-
         if ($name instanceof FlyAdapterInterface) {
             return $name->connect($config['connection']);
         }
 
-        return self::createDefaultConnector($name)->connect($config['connections'][$name] ?? []);
+        return self::createDefaultConnector($name)->connect($config['connection'] ?? []);
     }
 
     /**
