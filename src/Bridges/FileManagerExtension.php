@@ -126,14 +126,14 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     private function getFlyConfig(string $name): array
     {
         $options = [];
-        $config  = $this->config['connection'][$name] ?: [];
+        $config  = $this->config['connections'][$name] ?? [];
 
         if (isset($config['visibility'])) {
             $options['visibility'] = $config['visibility'];
         }
 
         if (isset($config['pirate'])) {
-            $options['disable_asserts'] = $config['private'];
+            $options['disable_asserts'] = $config['pirate'];
         }
 
         return $options;
