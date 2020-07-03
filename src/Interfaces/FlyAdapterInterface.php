@@ -34,5 +34,5 @@ interface FlyAdapterInterface
      *
      * @return AdapterInterface|object
      */
-    public function connect(array $config);
+    public function connect(Config $config);
 }
