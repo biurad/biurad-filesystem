@@ -37,7 +37,7 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
             'default'           => Nette\Schema\Expect::string()->default('array'),
             'caching'           => Nette\Schema\Expect::structure([
                 'enable' => Nette\Schema\Expect::bool(false),
-                'key'    => Nette\Schema\Expect::string()->nullable(),
+                'key'    => Nette\Schema\Expect::string()->default('flysystem'),
                 'ttl'    => Nette\Schema\Expect::int()->nullable(),
             ])->castTo('array'),
             'connections'       => Nette\Schema\Expect::arrayOf(
@@ -54,21 +54,24 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
      */
     public function loadConfiguration(): void
     {
-        $builder = $this->getContainerBuilder();
+        $builder     = $this->getContainerBuilder();
+        $filesystems = [];
 
-        $filesystems = \array_map(function (string $name) {
-            $adapters = ['awss3', 'azure', 'dropbox', 'ftp', 'gcs', 'gridfs', 'local', 'array', 'rackspace', 'sftp', 'webdav', 'zip'];
+        if (!empty($this->config['connections'])) {
+            $filesystems = \array_map(function (string $name) {
+                $adapters = ['awss3', 'azure', 'dropbox', 'ftp', 'gcs', 'gridfs', 'local', 'rackspace', 'sftp', 'webdav', 'zip'];
 
-            if (\in_array($name, $adapters, true)) {
-                return new Statement(
-                    FileManager::class,
-                    [
-                        $this->getFlyAdapter($name, $name),
-                        $this->getFlyConfig($name),
-                    ]
-                );
-            }
-        }, \array_combine(\array_keys($this->config['connections']), \array_keys($this->config['connections'])));
+                if (\in_array($name, $adapters, true)) {
+                    return new Statement(
+                        FileManager::class,
+                        [
+                            $this->getFlyAdapter($name, $name),
+                            $this->getFlyConfig($name),
+                        ]
+                    );
+                }
+            }, \array_combine(\array_keys($this->config['connections']), \array_keys($this->config['connections'])));
+        }
 
         $builder->addDefinition($this->prefix('map'))
             ->setFactory(FlysystemMap::class)
@@ -86,6 +89,7 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
      */
     public function beforeCompile(): void
     {
+        $builder  = $this->getContainerBuilder();
         $default  = $this->config['default'];
         $adapters = [];
 
