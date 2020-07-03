@@ -32,7 +32,12 @@ use IteratorAggregate;
 class FlysystemMap implements FlysystemMapInterface, IteratorAggregate
 {
     /** @var array */
-    private $filesystems = [];
+    private $filesystems;
+
+    public function __construct(array $filesystems = [])
+    {
+        $this->filesystems = $filesystems;
+    }
 
     /**
      * {@inheritdoc}
