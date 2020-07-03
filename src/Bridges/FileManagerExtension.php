@@ -38,13 +38,13 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
             'caching'           => Nette\Schema\Expect::structure([
                 'enable' => Nette\Schema\Expect::bool(false),
                 'key'    => Nette\Schema\Expect::string()->nullable(),
-                'ttl'    => Nette\Schema\Expect::string()->nullable(),
+                'ttl'    => Nette\Schema\Expect::int()->nullable(),
             ])->castTo('array'),
             'connections'       => Nette\Schema\Expect::arrayOf(
                 Nette\Schema\Expect::structure([
                     'visibility' => Nette\Schema\Expect::anyOf('public', 'private')->default('public'),
                     'pirate'     => Nette\Schema\Expect::scalar()->default(false),
-                ])->otherItems()->castTo('array'),
+                ])->otherItems()->castTo('array')
             ),
         ])->castTo('array');
     }
