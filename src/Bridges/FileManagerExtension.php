@@ -56,8 +56,23 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     {
         $builder = $this->getContainerBuilder();
 
+        $filesystems = \array_map(function (string $name) {
+            $adapters = ['awss3', 'azure', 'dropbox', 'ftp', 'gcs', 'gridfs', 'local', 'array', 'rackspace', 'sftp', 'webdav', 'zip'];
+
+            if (\in_array($name, $adapters, true)) {
+                return new Statement(
+                    FileManager::class,
+                    [
+                        $this->getFlyAdapter($name, $name),
+                        $this->getFlyConfig($name),
+                    ]
+                );
+            }
+        }, \array_combine(\array_keys($this->config['connections']), \array_keys($this->config['connections'])));
+
         $builder->addDefinition($this->prefix('map'))
-            ->setFactory(FlysystemMap::class);
+            ->setFactory(FlysystemMap::class)
+            ->setArguments([$filesystems]);
 
         $builder->addDefinition($this->prefix('manager'))
             ->setFactory(FileManager::class)
@@ -74,26 +89,35 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
         $builder       = $this->getContainerBuilder();
         $filesystemMap = $builder->getDefinition($this->prefix('map'));
 
-        $config      = \array_intersect_key($this->config, \array_flip(['default', 'connections']));
-        $default     = new Statement([ConnectionFactory::class, 'makeAdapter'], [$config]);
-        $adapters    = [];
+        $default  = $this->config['default'];
+        $adapters = [];
 
         foreach ($builder->findByTag(ConnectionFactory::FlY_ADAPTER_TAG) as $id => $name) {
             $adapter = $builder->getDefinition($id)->getFactory();
             $builder->removeDefinition($name);
 
-            $adapters[$name] = $connection = new Statement(
-                [ConnectionFactory::class, 'makeAdapter'],
-                [$this->createFlyConfig($name, $adapter)]
-            );
+            $adapters[$name] = $connection = $this->getFlyAdapter($name, $adapter);
             $filesystemMap->addSetup(
                 'set',
-                new Statement(FileManager::class, [$connection, $this->getFlyConfig($name)])
+                [$name, new Statement(FileManager::class, [$connection, $this->getFlyConfig($name)])]
             );
         }
 
-        $adapter = $adapters[$this->config['default']] ?: $default;
+        $builder->getDefinition($this->prefix('manager'))
+            ->setArgument(0, $adapters[$default] ?? $this->getFlyAdapter($default, $default));
+    }
+
+    /**
+     * @param string           $name
+     * @param Statement|string $adapter
+     *
+     * @return Statement
+     */
+    private function getFlyAdapter(string $name, $adapter): Statement
+    {
         $cache   = $this->config['caching'];
+        $builder = $this->getContainerBuilder();
+        $adapter =  new Statement([ConnectionFactory::class, 'makeAdapter'], [$this->createFlyConfig($name, $adapter)]);
 
         if ($cache['enable'] && \class_exists(Psr6Cache::class) && $builder->getByType(CacheItemPoolInterface::class)) {
             $adapter = new Statement(
@@ -102,21 +126,28 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
             );
         }
 
-        $builder->getDefinition($this->prefix('manager'))
-            ->setArgument('config', $adapter);
+        return $adapter;
     }
 
     /**
-     * @param string    $name
-     * @param Statement $adapter
+     * @param string           $name
+     * @param Statement|string $adapter
      *
      * @return array
      */
-    private function createFlyConfig(string $name, Statement $adapter): array
+    private function createFlyConfig(string $name, $adapter): array
     {
+        $adapterConfig = \array_filter(
+            $this->config['connections'][$name],
+            function (string $key) {
+                return !\in_array($key, ['visibility', 'pirate']);
+            },
+            \ARRAY_FILTER_USE_KEY
+        );
+
         return [
             'default'     => $adapter,
-            'connections' => [$name => $this->config['connections'][$name]],
+            'connection'  => $adapterConfig,
         ];
     }
 
