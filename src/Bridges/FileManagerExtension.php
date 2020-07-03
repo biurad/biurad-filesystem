@@ -24,7 +24,7 @@ use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\Cached\Storage\Psr6Cache;
 use Nette;
 use Nette\DI\Definitions\Statement;
-use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class FileManagerExtension extends Nette\DI\CompilerExtension
 {
@@ -95,7 +95,7 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
         $adapter = $adapters[$this->config['default']] ?: $default;
         $cache   = $this->config['caching'];
 
-        if ($cache['enable'] && \class_exists(Psr6Cache::class) && $builder->getByType(CacheItemInterface::class)) {
+        if ($cache['enable'] && \class_exists(Psr6Cache::class) && $builder->getByType(CacheItemPoolInterface::class)) {
             $adapter = new Statement(
                 CachedAdapter::class,
                 [$adapter, new Statement(Psr6Cache::class, [1 => $cache['key'], 2 => $cache['ttl']])]
