@@ -86,18 +86,15 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
      */
     public function beforeCompile(): void
     {
-        $builder       = $this->getContainerBuilder();
-        $filesystemMap = $builder->getDefinition($this->prefix('map'));
-
         $default  = $this->config['default'];
         $adapters = [];
 
-        foreach ($builder->findByTag(ConnectionFactory::FlY_ADAPTER_TAG) as $id => $name) {
+        foreach ($builder->findByTag(ConnectionFactory::FLY_ADAPTER_TAG) as $id => $name) {
             $adapter = $builder->getDefinition($id)->getFactory();
             $builder->removeDefinition($name);
 
             $adapters[$name] = $connection = $this->getFlyAdapter($name, $adapter);
-            $filesystemMap->addSetup(
+            $builder->getDefinition($this->prefix('map'))->addSetup(
                 'set',
                 [$name, new Statement(FileManager::class, [$connection, $this->getFlyConfig($name)])]
             );
@@ -138,7 +135,7 @@ class FileManagerExtension extends Nette\DI\CompilerExtension
     private function createFlyConfig(string $name, $adapter): array
     {
         $adapterConfig = \array_filter(
-            $this->config['connections'][$name],
+            $this->config['connections'][$name] ?? [],
             function (string $key) {
                 return !\in_array($key, ['visibility', 'pirate']);
             },

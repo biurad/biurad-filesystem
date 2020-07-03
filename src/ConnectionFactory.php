@@ -29,7 +29,7 @@ use League\Flysystem\Config;
  */
 class ConnectionFactory
 {
-    public const FlY_ADAPTER_TAG = 'flysystem.connection';
+    public const FLY_ADAPTER_TAG = 'flysystem.connection';
 
     /**
      * Establish an adapter connection.

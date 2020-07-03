@@ -32,9 +32,8 @@ declare(strict_types=1);
 
 namespace BiuradPHP\FileManager\Tests;
 
-use BiuradPHP\FileManager\Config\FileConfig;
 use BiuradPHP\FileManager\FileManager;
-use BiuradPHP\FileManager\Interfaces\FileManagerInterface;
+use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
 use Closure;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
@@ -43,47 +42,39 @@ use League\Flysystem\Cached\Storage\AbstractCache;
 use League\Flysystem\Cached\Storage\Memory;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @requires PHP 7.1.30
- * @requires PHPUnit 7.5
- */
 abstract class FilesystemTestCase extends TestCase
 {
-    /**
-     * @var Closure|FileManager
-     */
+    /** @var Closure<FileManager> */
     protected $filesystem;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $workspace;
 
     protected function setUp(): void
     {
         $this->workspace = __DIR__ . \DIRECTORY_SEPARATOR . 'Fixtures';
 
-        $this->filesystem = function (FileConfig $config, AdapterInterface &$driver) {
-            return new FileManager($driver, $config);
+        $this->filesystem = function (AdapterInterface $driver) {
+            return new FileManager($driver);
         };
     }
 
-    abstract protected function getConfig(): FileConfig;
+    abstract protected function getAdapter(): AdapterInterface;
 
-    protected function getAdapter(): AdapterInterface
+    protected function getLocalAdapter(): AdapterInterface
     {
         return new Local($this->workspace);
     }
 
-    protected function getFlysystem(): FileManagerInterface
+    protected function getFlysystem(): FlysystemInterface
     {
-        return ($this->filesystem)($this->getConfig(), $this->getAdapter());
+        return ($this->filesystem)($this->getAdapter());
     }
 
-    protected function getFlysystemCache(AbstractCache $cache = null): FileManagerInterface
+    protected function getFlysystemCache(AbstractCache $cache = null): FlysystemInterface
     {
         $driver = new CachedAdapter($this->getAdapter(), $cache ?? new Memory());
 
-        return ($this->filesystem)($this->getConfig(), $driver);
+        return ($this->filesystem)($driver);
     }
 }

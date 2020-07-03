@@ -30,7 +30,7 @@ interface FlyAdapterInterface
     /**
      * Establish a connection.
      *
-     * @param array $config
+     * @param Config $config
      *
      * @return AdapterInterface|object
      */
