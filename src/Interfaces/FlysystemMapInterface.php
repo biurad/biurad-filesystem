@@ -21,6 +21,8 @@ use InvalidArgumentException;
 
 /**
  * Associates filesystem instances to their names.
+ * 
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 interface FlysystemMapInterface
 {

@@ -21,6 +21,7 @@ namespace BiuradPHP\FileManager\Streams;
  * Represents a stream mode.
  *
  * @author Antoine Hérault <antoine.herault@gmail.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class StreamMode
 {

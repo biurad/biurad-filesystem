@@ -26,6 +26,7 @@ use League\Flysystem\Config;
  * This is the adapter connection factory class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class ConnectionFactory
 {

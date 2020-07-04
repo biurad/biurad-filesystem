@@ -21,108 +21,74 @@ use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use Google\Cloud\Storage\StorageClient;
 use InvalidArgumentException;
 use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 
 /**
  * This is the gcs connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
  * @author Nir Radian <nirradi@gmail.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class GoogleCloudStorageConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return GoogleStorageAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-        $config = $this->getConfig($config);
+        $client = $this->getClient($config);
 
-        return $this->getAdapter($client, $config);
-    }
+        $bucket = $client->bucket($this->get($config, 'bucket'));
+        $adapter = new GoogleStorageAdapter($client, $bucket);
 
-    /**
-     * Get the authentication data.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     * @return string[]
-     */
-    protected function getAuth(array $config)
-    {
-        if (!\array_key_exists('projectId', $config)) {
-            throw new InvalidArgumentException('The gcs connector requires project id configuration.');
+        if ($config->has('prefix')) {
+            $adapter->setPathPrefix($config->get('prefix'));
         }
 
-        $auth = [
-            'projectId' => $config['projectId'],
-        ];
-
-        if (\array_key_exists('keyFile', $config)) {
-            $auth['keyFilePath'] = $config['keyFile'];
+        if ($config->has('apiUri')) {
+            $adapter->setStorageApiUri($config->get('apiUri'));
         }
 
-        return $auth;
+        return $adapter;
     }
 
     /**
      * Get the gcs client.
      *
-     * @param string[] $auth
+     * @param Config $config
      *
      * @return StorageClient
      */
-    protected function getClient(array $auth)
+    protected function getClient(Config $config): StorageClient
     {
+        $auth = [
+            'projectId' => $this->get($config, 'projectId'),
+        ];
+
+        if ($config->has('keyFile')) {
+            $auth['keyFilePath'] = $config->get('keyFile');
+        }
+
         return new StorageClient($auth);
     }
 
     /**
-     * Get the configuration.
-     *
-     * @param string[] $config
+     * @param Config $config
+     * @param string $key
      *
      * @throws InvalidArgumentException
-     *
-     * @return array
+     * @return mixed
      */
-    protected function getConfig(array $config)
+    private function get(Config $config, string $key)
     {
-        if (!\array_key_exists('bucket', $config)) {
-            throw new InvalidArgumentException('The gcs connector requires bucket configuration.');
+        if (!$config->has($key)) {
+            throw new InvalidArgumentException(\sprintf('The gcs connector requires "%s" configuration.', $key));
         }
 
-        return \array_intersect_key($config, \array_flip(['bucket', 'prefix', 'apiUri']));
-    }
-
-    /**
-     * Get the gcs adapter.
-     *
-     * @param StorageClient $client
-     * @param string[]      $config
-     *
-     * @return GoogleStorageAdapter
-     */
-    protected function getAdapter(StorageClient $client, array $config)
-    {
-        $bucket = $client->bucket($config['bucket']);
-
-        $adapter = new GoogleStorageAdapter($client, $bucket);
-
-        if (\array_key_exists('prefix', $config)) {
-            $adapter->setPathPrefix($config['prefix']);
-        }
-
-        if (\array_key_exists('apiUri', $config)) {
-            $adapter->setStorageApiUri($config['apiUri']);
-        }
-
-        return $adapter;
+        return $config->get($key);
     }
 }

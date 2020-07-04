@@ -18,6 +18,8 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\WebDAV\WebDAVAdapter;
 use Sabre\DAV\Client;
 
@@ -25,62 +27,26 @@ use Sabre\DAV\Client;
  * This is the webdav connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class WebDavConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
-     *
-     * @return \League\Flysystem\WebDAV\WebDAVAdapter
-     */
-    public function connect(array $config)
-    {
-        $client = $this->getClient($config);
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($client, $config);
-    }
-
-    /**
-     * Get the webdav client.
-     *
-     * @param string[] $config
-     *
-     * @return \Sabre\DAV\Client
-     */
-    protected function getClient(array $config)
-    {
-        return new Client($config);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
-     *
-     * @return string[]
-     */
-    protected function getConfig(array $config)
-    {
-        if (!\array_key_exists('prefix', $config)) {
-            $config['prefix'] = null;
-        }
-
-        return \array_intersect_key($config, \array_flip(['prefix']));
-    }
-
-    /**
-     * Get the webdav adapter.
-     *
-     * @param Client   $client
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return WebDAVAdapter
      */
-    protected function getAdapter(Client $client, array $config)
+    public function connect(array $config): AdapterInterface
     {
-        return new WebDAVAdapter($client, $config['prefix']);
+        static $connection;
+        $connection = Closure::bind(
+            static function (Config $item) {
+                return $item->settings;
+            },
+            null,
+            Config::class
+        );
+
+        return new WebDAVAdapter(new Client((array) $connection($config)), $config->get('prefix'));
     }
 }

@@ -19,6 +19,8 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use Spatie\Dropbox\Client;
 use Spatie\FlysystemDropbox\DropboxAdapter;
 
@@ -26,80 +28,21 @@ use Spatie\FlysystemDropbox\DropboxAdapter;
  * This is the dropbox connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class DropboxConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return DropboxAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($client, $config);
-    }
-
-    /**
-     * Get the authentication data.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     * @return string[]
-     */
-    protected function getAuth(array $config)
-    {
-        if (!\array_key_exists('token', $config)) {
+        if (!$config->has('token')) {
             throw new InvalidArgumentException('The dropbox connector requires authentication.');
         }
 
-        return \array_intersect_key($config, \array_flip(['token']));
-    }
-
-    /**
-     * Get the dropbox client.
-     *
-     * @param string[] $auth
-     *
-     * @return Client
-     */
-    protected function getClient(array $auth)
-    {
-        return new Client($auth['token']);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
-     *
-     * @return string[]
-     */
-    protected function getConfig(array $config)
-    {
-        if (!\array_key_exists('prefix', $config)) {
-            $config['prefix'] = null;
-        }
-
-        return \array_intersect_key($config, \array_flip(['prefix']));
-    }
-
-    /**
-     * Get the dropbox adapter.
-     *
-     * @param Client   $client
-     * @param string[] $config
-     *
-     * @return DropboxAdapter
-     */
-    protected function getAdapter(Client $client, array $config)
-    {
-        return new DropboxAdapter($client, (string) $config['prefix']);
+        return new DropboxAdapter(new Client($config->get('token')), (string) $config->get('prefix'));
     }
 }

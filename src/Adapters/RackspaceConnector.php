@@ -27,89 +27,56 @@ use OpenCloud\Rackspace as OpenStackRackspace;
  * This is the rackspace connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class RackspaceConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
+     * {@inheritdoc}
      *
-     * @codeCoverageIgnore
-     *
-     * @param string[] $config
-     *
-     * @return \League\Flysystem\Rackspace\RackspaceAdapter
+     * @return RackspaceAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-
-        return $this->getAdapter($client);
-    }
-
-    /**
-     * Get the authentication data.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return string[]
-     */
-    protected function getAuth(array $config)
-    {
-        if (!\array_key_exists('username', $config) || !\array_key_exists('apiKey', $config)) {
-            throw new InvalidArgumentException('The rackspace connector requires authentication.');
-        }
-
-        if (!\array_key_exists('endpoint', $config)) {
-            throw new InvalidArgumentException('The rackspace connector requires endpoint configuration.');
-        }
-
-        if (!\array_key_exists('region', $config)) {
-            throw new InvalidArgumentException('The rackspace connector requires region configuration.');
-        }
-
-        if (!\array_key_exists('container', $config)) {
-            throw new InvalidArgumentException('The rackspace connector requires container configuration.');
-        }
-
-        return \array_intersect_key(
-            $config,
-            \array_flip(['username', 'apiKey', 'endpoint', 'region', 'container', 'internal'])
-        );
+        return new RackspaceAdapter($this->getClient($config));
     }
 
     /**
      * Get the rackspace client.
      *
-     * @param string[] $auth
+     * @param Config $config
      *
      * @return Container
      */
-    protected function getClient(array $auth)
+    protected function getClient(Config $config)
     {
-        $client = new OpenStackRackspace($auth['endpoint'], [
-            'username' => $auth['username'],
-            'apiKey'   => $auth['apiKey'],
+        $client = new OpenStackRackspace($this->get($config, 'endpoint'), [
+            'username' => $this->get($config, 'username'),
+            'apiKey'   => $this->get($config, 'apiKey'),
         ]);
 
-        $urlType = isset($auth['internal']) ? 'internalURL' : 'publicURL';
+        $urlType = $config->has('internal') ? 'internalURL' : 'publicURL';
 
-        return $client->objectStoreService('cloudFiles', $auth['region'], $urlType)->getContainer($auth['container']);
+        return $client->objectStoreService(
+            'cloudFiles',
+            $this->get($config, 'region'),
+            $urlType
+        )->getContainer($this->get($config, 'container'));
     }
 
     /**
-     * Get the rackspace adapter.
+     * @param Config $config
+     * @param string $key
      *
-     * @codeCoverageIgnore
-     *
-     * @param Container $client
-     *
-     * @return RackspaceAdapter
+     * @throws InvalidArgumentException
+     * @return mixed
      */
-    protected function getAdapter(Container $client)
+    private function get(Config $config, string $key)
     {
-        return new RackspaceAdapter($client);
+        if (!$config->has($key)) {
+            throw new InvalidArgumentException(\sprintf('The rackspace connector requires "%s" configuration.', $key));
+        }
+
+        return $config->get($key);
     }
 }

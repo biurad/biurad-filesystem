@@ -20,60 +20,33 @@ namespace BiuradPHP\FileManager\Adapters;
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 
 /**
  * This is the local connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class LocalConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return Local
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($config);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return string[]
-     */
-    protected function getConfig(array $config)
-    {
-        if (!\array_key_exists('path', $config)) {
-            throw new InvalidArgumentException('The local connector requires path configuration.');
+        if (!$config->has('path')) {
+            throw new InvalidArgumentException('The local connector requires "path" configuration.');
         }
 
-        return \array_intersect_key($config, \array_flip(['path', 'write_flags', 'link_handling', 'permissions']));
-    }
-
-    /**
-     * Get the local adapter.
-     *
-     * @param string[] $config
-     *
-     * @return Local
-     */
-    protected function getAdapter(array $config)
-    {
         // Pull parameters from config and set defaults for optional values
-        $path         = $config['path'];
-        $writeFlags   = $config['write_flags'] ?: \LOCK_EX;
-        $linkHandling = $config['link_handling'] ?: Local::DISALLOW_LINKS;
-        $permissions  = $config['permissions'] ?: [];
+        $path         = $config->get('path');
+        $writeFlags   = $config->get('write_flags', \LOCK_EX);
+        $linkHandling = $config->get('link_handling', Local::DISALLOW_LINKS);
+        $permissions  = $config->get('permissions', []);
 
         return new Local($path, $writeFlags, $linkHandling, $permissions);
     }

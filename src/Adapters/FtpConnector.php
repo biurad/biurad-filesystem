@@ -18,36 +18,35 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
+use Closure;
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 
 /**
  * This is the ftp connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class FtpConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return FtpAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        return $this->getAdapter($config);
-    }
+        static $connection;
+        $connection = Closure::bind(
+            static function (Config $item) {
+                return $item->settings;
+            },
+            null,
+            Config::class
+        );
 
-    /**
-     * Get the ftp adapter.
-     *
-     * @param string[] $config
-     *
-     * @return FtpAdapter
-     */
-    protected function getAdapter(array $config)
-    {
-        return new FtpAdapter($config);
+        return new FtpAdapter((array) $connection($config));
     }
 }

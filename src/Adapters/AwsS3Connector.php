@@ -21,125 +21,83 @@ use Aws\S3\S3Client;
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
+use League\Flysystem\Config;
 
 /**
  * This is the awss3 connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
  * @author Raul Ruiz <publiux@gmail.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class AwsS3Connector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return AwsS3Adapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-        $config = $this->getConfig($config);
+        $client = new S3Client($this->getAuth($config));
 
-        return $this->getAdapter($client, $config);
+        return new AwsS3Adapter($client, $this->get($config, 'bucket'), $config->get('prefix'));
     }
 
     /**
      * Get the authentication data.
      *
-     * @param string[] $config
+     * @param Config $config
      *
      * @throws InvalidArgumentException
-     *
-     * @return string[]
+     * @return array
      */
-    protected function getAuth(array $config)
+    protected function getAuth(Config $config): array
     {
-        if (!\array_key_exists('version', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires version configuration.');
-        }
-
-        if (!\array_key_exists('region', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires region configuration.');
-        }
-
         $auth = [
-            'region'      => $config['region'],
-            'version'     => $config['version'],
+            'region'  => $this->get($config, 'region'),
+            'version' => $this->get($config, 'version'),
         ];
 
-        if (isset($config['key'])) {
-            if (!\array_key_exists('secret', $config)) {
+        if ($config->has('key')) {
+            if (!$config->has('secret')) {
                 throw new InvalidArgumentException('The awss3 connector requires authentication.');
             }
-            $auth['credentials'] = \array_intersect_key($config, \array_flip(['key', 'secret']));
+            $auth['credentials'] = ['key' => $config->get('key'), 'secret' => $config->get('secret')];
         }
 
-        if (\array_key_exists('bucket_endpoint', $config)) {
-            $auth['bucket_endpoint'] = $config['bucket_endpoint'];
+        if ($config->has('bucket_endpoint')) {
+            $auth['bucket_endpoint'] = $config->get('bucket_endpoint');
         }
 
-        if (\array_key_exists('calculate_md5', $config)) {
-            $auth['calculate_md5'] = $config['calculate_md5'];
+        if ($config->has('calculate_md5')) {
+            $auth['calculate_md5'] = $config->get('calculate_md5');
         }
 
-        if (\array_key_exists('scheme', $config)) {
-            $auth['scheme'] = $config['scheme'];
+        if ($config->has('scheme')) {
+            $auth['scheme'] = $config->get('scheme');
         }
 
-        if (\array_key_exists('endpoint', $config)) {
-            $auth['endpoint'] = $config['endpoint'];
+        if ($config->has('endpoint')) {
+            $auth['endpoint'] = $config->get('endpoint');
         }
 
         return $auth;
     }
 
     /**
-     * Get the awss3 client.
-     *
-     * @param string[] $auth
-     *
-     * @return S3Client
-     */
-    protected function getClient(array $auth)
-    {
-        return new S3Client($auth);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
+     * @param Config $config
+     * @param string $key
      *
      * @throws InvalidArgumentException
-     *
-     * @return array
+     * @return mixed
      */
-    protected function getConfig(array $config)
+    private function get(Config $config, string $key)
     {
-        if (!\array_key_exists('prefix', $config)) {
-            $config['prefix'] = null;
+        if (!$config->has($key)) {
+            throw new InvalidArgumentException(\sprintf('The awss3 connector requires "%s" configuration.', $key));
         }
 
-        if (!\array_key_exists('bucket', $config)) {
-            throw new InvalidArgumentException('The awss3 connector requires bucket configuration.');
-        }
-
-        return \array_intersect_key($config, \array_flip(['bucket', 'prefix']));
-    }
-
-    /**
-     * Get the awss3 adapter.
-     *
-     * @param S3Client $client
-     * @param string[] $config
-     *
-     * @return AwsS3Adapter
-     */
-    protected function getAdapter(S3Client $client, array $config)
-    {
-        return new AwsS3Adapter($client, $config['bucket'], $config['prefix']);
+        return $config->get($key);
     }
 }

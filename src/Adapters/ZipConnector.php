@@ -19,56 +19,29 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\ZipArchive\ZipArchiveAdapter;
 
 /**
  * This is the zip connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class ZipConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
-     *
-     * @return \League\Flysystem\ZipArchive\ZipArchiveAdapter
-     */
-    public function connect(array $config)
-    {
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($config);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return string[]
-     */
-    protected function getConfig(array $config)
-    {
-        if (!\array_key_exists('path', $config)) {
-            throw new InvalidArgumentException('The zip connector requires path configuration.');
-        }
-
-        return \array_intersect_key($config, \array_flip(['path']));
-    }
-
-    /**
-     * Get the zip adapter.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return ZipArchiveAdapter
      */
-    protected function getAdapter(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        return new ZipArchiveAdapter($config['path']);
+        if (!$config->has('path')) {
+            throw new InvalidArgumentException('The zip connector requires "path" configuration.');
+        }
+
+        return new ZipArchiveAdapter($config->get('path'));
     }
 }

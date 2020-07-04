@@ -24,15 +24,16 @@ use League\Flysystem\Config;
  * This is the connector interface.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 interface FlyAdapterInterface
 {
     /**
-     * Establish a connection.
+     * Establish an adapter connection.
      *
      * @param Config $config
      *
-     * @return AdapterInterface|object
+     * @return AdapterInterface
      */
-    public function connect(Config $config);
+    public function connect(Config $config): AdapterInterface;
 }

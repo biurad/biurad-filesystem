@@ -19,6 +19,8 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\GridFS\GridFSAdapter;
 use MongoClient;
 
@@ -26,82 +28,35 @@ use MongoClient;
  * This is the gridfs connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class GridFSConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
-     *
-     * @return \League\Flysystem\GridFS\GridFSAdapter
-     */
-    public function connect(array $config)
-    {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($client, $config);
-    }
-
-    /**
-     * Get the authentication data.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     * @return string[]
-     */
-    protected function getAuth(array $config)
-    {
-        if (!\array_key_exists('server', $config)) {
-            throw new InvalidArgumentException('The gridfs connector requires server configuration.');
-        }
-
-        return \array_intersect_key($config, \array_flip(['server']));
-    }
-
-    /**
-     * Get the gridfs client.
-     *
-     * @param string[] $auth
-     *
-     * @return MongoClient
-     */
-    protected function getClient(array $auth)
-    {
-        return new MongoClient($auth['server']);
-    }
-
-    /**
-     * Get the configuration.
-     *
-     * @param string[] $config
-     *
-     * @return string[]
-     */
-    protected function getConfig(array $config)
-    {
-        if (!\array_key_exists('database', $config)) {
-            throw new InvalidArgumentException('The gridfs connector requires database configuration.');
-        }
-
-        return \array_intersect_key($config, \array_flip(['database']));
-    }
-
-    /**
-     * Get the gridfs adapter.
-     *
-     * @param MongoClient $client
-     * @param string[]    $config
+     * {@inheritdoc}
      *
      * @return GridFSAdapter
      */
-    protected function getAdapter(MongoClient $client, array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $fs = $client->selectDB($config['database'])->getGridFS();
+        $client =  new MongoClient($this->get($config, 'server'));
 
-        return new GridFSAdapter($fs);
+        return new GridFSAdapter($client->selectDB($this->get($config, 'database'))->getGridFS());
+    }
+
+    /**
+     * @param Config $config
+     * @param string $key
+     *
+     * @throws InvalidArgumentException
+     * @return mixed
+     */
+    private function get(Config $config, string $key)
+    {
+        if (!$config->has($key)) {
+            throw new InvalidArgumentException(\sprintf('The gridfs connector requires "%s" configuration.', $key));
+        }
+
+        return $config->get($key);
     }
 }

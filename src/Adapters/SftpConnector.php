@@ -18,36 +18,34 @@ declare(strict_types=1);
 namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\Sftp\SftpAdapter;
 
 /**
  * This is the sftp connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class SftpConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return SftpAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        return $this->getAdapter($config);
-    }
+        static $connection;
+        $connection = Closure::bind(
+            static function (Config $item) {
+                return $item->settings;
+            },
+            null,
+            Config::class
+        );
 
-    /**
-     * Get the sftp adapter.
-     *
-     * @param string[] $config
-     *
-     * @return SftpAdapter
-     */
-    protected function getAdapter(array $config)
-    {
-        return new SftpAdapter($config);
+        return new SftpAdapter((array) $connection($config));
     }
 }

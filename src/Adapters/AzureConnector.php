@@ -19,94 +19,60 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
+use League\Flysystem\Config;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 
 /**
  * This is the azure connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class AzureConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return AzureBlobStorageAdapter
      */
-    public function connect(array $config)
+    public function connect(Config $config): AdapterInterface
     {
-        $auth   = $this->getAuth($config);
-        $client = $this->getClient($auth);
-        $config = $this->getConfig($config);
-
-        return $this->getAdapter($client, $config);
-    }
-
-    /**
-     * Get the authentication data.
-     *
-     * @param string[] $config
-     *
-     * @throws InvalidArgumentException
-     *
-     * @return string[]
-     */
-    protected function getAuth(array $config)
-    {
-        if (!\array_key_exists('account-name', $config) || !\array_key_exists('api-key', $config)) {
-            throw new InvalidArgumentException('The azure connector requires authentication.');
-        }
-
-        return \array_intersect_key($config, \array_flip(['account-name', 'api-key']));
+        return new AzureBlobStorageAdapter($this->getClient($config), $this->get($config, 'container'));
     }
 
     /**
      * Get the azure client.
      *
-     * @param string[] $auth
+     * @param Config $auth
      *
      * @return BlobRestProxy
      */
-    protected function getClient(array $auth)
+    protected function getClient(Config $config): BlobRestProxy
     {
         $endpoint = \sprintf(
             'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s',
-            $auth['account-name'],
-            $auth['api-key']
+            $this->get($config, 'account-name'),
+            $this->get($config, 'api-key')
         );
 
         return BlobRestProxy::createBlobService($endpoint);
     }
 
     /**
-     * Get the configuration.
+     * @param Config $config
+     * @param string $key
      *
-     * @param string[] $config
-     *
-     * @return string[]
+     * @throws InvalidArgumentException
+     * @return mixed
      */
-    protected function getConfig(array $config)
+    private function get(Config $config, string $key)
     {
-        if (!\array_key_exists('container', $config)) {
-            throw new InvalidArgumentException('The azure connector requires container configuration.');
+        if (!$config->has($key)) {
+            throw new InvalidArgumentException(\sprintf('The azure connector requires "%s" configuration.', $key));
         }
 
-        return \array_intersect_key($config, \array_flip(['container']));
-    }
-
-    /**
-     * Get the container adapter.
-     *
-     * @param BlobRestProxy $client
-     * @param string[]      $config
-     *
-     * @return AzureBlobStorageAdapter
-     */
-    protected function getAdapter(BlobRestProxy $client, array $config)
-    {
-        return new AzureBlobStorageAdapter($client, $config['container']);
+        return $config->get($key);
     }
 }

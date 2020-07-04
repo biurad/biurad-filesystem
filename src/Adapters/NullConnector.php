@@ -19,32 +19,23 @@ namespace BiuradPHP\FileManager\Adapters;
 
 use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
 use League\Flysystem\Adapter\NullAdapter;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 
 /**
  * This is the null connector class.
  *
  * @author Graham Campbell <graham@alt-three.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class NullConnector implements FlyAdapterInterface
 {
     /**
-     * Establish an adapter connection.
-     *
-     * @param string[] $config
+     * {@inheritdoc}
      *
      * @return NullAdapter
      */
-    public function connect(array $config)
-    {
-        return $this->getAdapter();
-    }
-
-    /**
-     * Get the null adapter.
-     *
-     * @return NullAdapter
-     */
-    protected function getAdapter()
+    public function connect(Config $config): AdapterInterface
     {
         return new NullAdapter();
     }

@@ -30,6 +30,7 @@ use RuntimeException;
  *
  * @author Antoine Hérault <antoine.herault@gmail.com>
  * @author Leszek Prabucki <leszek.prabucki@gmail.com>
+ * @author Divine Niiquaye Ibok <divineibok@gmail.com>
  */
 class StreamWrapper
 {
