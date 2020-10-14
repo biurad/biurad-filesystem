@@ -17,38 +17,45 @@ declare(strict_types=1);
 
 namespace Biurad\FileManager\Streams;
 
-use Biurad\FileManager\Exception\WrapperException;
-use Biurad\FileManager\Interfaces\FlysystemInterface;
 use Biurad\FileManager\Interfaces\StreamInterface;
 use Exception;
 use League\Flysystem\Adapter\Local as FlyLocal;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\FileNotFoundException;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\NotSupportedException;
 use League\Flysystem\Util;
 use LogicException;
 use SplFileObject;
 
 class FlyStreamBuffer implements StreamInterface
 {
+    /** @var FilesystemInterface */
     private $filesystem;
 
+    /** @var string */
     private $key;
 
+    /** @var StreamMode */
     private $mode;
 
+    /** @var string */
     private $content;
 
+    /** @var int */
     private $numBytes;
 
+    /** @var int */
     private $position;
 
+    /** @var bool */
     private $synchronized;
 
     /**
-     * @param FlysystemInterface $filesystem The filesystem managing the file to stream
-     * @param string             $key        The file key
+     * @param FilesystemInterface $filesystem The filesystem managing the file to stream
+     * @param string              $key        The file key
      */
-    public function __construct(FlysystemInterface $filesystem, $key)
+    public function __construct(FilesystemInterface $filesystem, string $key)
     {
         $this->filesystem = $filesystem;
         $this->key        = $key;
@@ -267,7 +274,7 @@ class FlyStreamBuffer implements StreamInterface
         try {
             return $this->filesystem->readStream($this->key);
         } catch (Exception $e) {
-            throw new WrapperException(
+            throw new NotSupportedException(
                 'Sorry, doesn\'t support reading directory on remote connection, use local storage instead.',
                 0,
                 $e

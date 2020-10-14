@@ -17,11 +17,11 @@ declare(strict_types=1);
 
 namespace Biurad\FileManager\Streams;
 
-use Biurad\FileManager\Interfaces\FlysystemMapInterface;
 use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
+use League\Flysystem\MountManager;
 use RuntimeException;
 
 /**
@@ -33,6 +33,7 @@ use RuntimeException;
  */
 class StreamWrapper
 {
+    /** @var MountManager */
     private static $filesystemMap;
 
     private $stream;
@@ -44,10 +45,10 @@ class StreamWrapper
     /**
      * Defines the filesystem map.
      *
-     * @param  FlysystemMapInterface $map
+     * @param  MountManager  $map
      * @return StreamWrapper
      */
-    public static function setFilesystemMap(FlysystemMapInterface $map): StreamWrapper
+    public static function setFilesystemMap(MountManager $map): StreamWrapper
     {
         static::$filesystemMap = $map;
 
@@ -57,7 +58,7 @@ class StreamWrapper
     /**
      * Returns the filesystem map.
      *
-     * @return FlysystemMapInterface $map
+     * @return MountManager $map
      */
     public static function getFilesystemMap()
     {
@@ -346,7 +347,7 @@ class StreamWrapper
             throw new InvalidArgumentException(\sprintf('The specified path (%s) is invalid.', $path));
         }
 
-        $filesystem = static::getFilesystemMap()->get($domain);
+        $filesystem = static::getFilesystemMap()->getFilesystem($domain);
 
         if (false !== $stream) {
             return $filesystem;
