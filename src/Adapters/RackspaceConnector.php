@@ -19,6 +19,8 @@ namespace Biurad\FileManager\Adapters;
 
 use Biurad\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\Rackspace\RackspaceAdapter;
 use OpenCloud\ObjectStore\Resource\Container;
 use OpenCloud\Rackspace as OpenStackRackspace;

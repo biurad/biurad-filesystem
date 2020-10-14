@@ -20,6 +20,7 @@ namespace Biurad\FileManager\Adapters;
 use Aws\S3\S3Client;
 use Biurad\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Config;
 

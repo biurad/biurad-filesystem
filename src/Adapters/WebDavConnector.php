@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Biurad\FileManager\Adapters;
 
 use Biurad\FileManager\Interfaces\FlyAdapterInterface;
+use Closure;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use League\Flysystem\WebDAV\WebDAVAdapter;
@@ -36,7 +37,7 @@ class WebDavConnector implements FlyAdapterInterface
      *
      * @return WebDAVAdapter
      */
-    public function connect(array $config): AdapterInterface
+    public function connect(Config $config): AdapterInterface
     {
         static $connection;
         $connection = Closure::bind(

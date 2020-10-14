@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Biurad\FileManager\Adapters;
 
 use Biurad\FileManager\Interfaces\FlyAdapterInterface;
+use Closure;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use League\Flysystem\Sftp\SftpAdapter;
