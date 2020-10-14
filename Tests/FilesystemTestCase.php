@@ -32,19 +32,19 @@ declare(strict_types=1);
 
 namespace Biurad\FileManager\Tests;
 
-use Biurad\FileManager\FileManager;
-use Biurad\FileManager\Interfaces\FlysystemInterface;
 use Closure;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\Cached\Storage\AbstractCache;
 use League\Flysystem\Cached\Storage\Memory;
+use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemInterface;
 use PHPUnit\Framework\TestCase;
 
 abstract class FilesystemTestCase extends TestCase
 {
-    /** @var Closure<FileManager> */
+    /** @var Closure */
     protected $filesystem;
 
     /** @var string */
@@ -55,7 +55,7 @@ abstract class FilesystemTestCase extends TestCase
         $this->workspace = __DIR__ . \DIRECTORY_SEPARATOR . 'Fixtures';
 
         $this->filesystem = function (AdapterInterface $driver) {
-            return new FileManager($driver);
+            return new Filesystem($driver);
         };
     }
 
@@ -66,12 +66,12 @@ abstract class FilesystemTestCase extends TestCase
         return new Local($this->workspace);
     }
 
-    protected function getFlysystem(): FlysystemInterface
+    protected function getFlysystem(): FilesystemInterface
     {
         return ($this->filesystem)($this->getAdapter());
     }
 
-    protected function getFlysystemCache(AbstractCache $cache = null): FlysystemInterface
+    protected function getFlysystemCache(AbstractCache $cache = null): FilesystemInterface
     {
         $driver = new CachedAdapter($this->getAdapter(), $cache ?? new Memory());
 
