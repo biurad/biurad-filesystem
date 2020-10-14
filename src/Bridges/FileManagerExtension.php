@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,11 +15,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager\Bridges;
+namespace Biurad\FileManager\Bridges;
 
-use BiuradPHP\FileManager\ConnectionFactory;
-use BiuradPHP\FileManager\FileManager;
-use BiuradPHP\FileManager\FlysystemMap;
+use Biurad\FileManager\ConnectionFactory;
+use Biurad\FileManager\FileManager;
+use Biurad\FileManager\FlysystemMap;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\Cached\Storage\Psr6Cache;
 use Nette;

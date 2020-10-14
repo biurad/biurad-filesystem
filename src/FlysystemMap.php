@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,11 +15,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager;
+namespace Biurad\FileManager;
 
 use ArrayIterator;
-use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
-use BiuradPHP\FileManager\Interfaces\FlysystemMapInterface;
+use Biurad\FileManager\Interfaces\FlysystemInterface;
+use Biurad\FileManager\Interfaces\FlysystemMapInterface;
 use InvalidArgumentException;
 use IteratorAggregate;
 

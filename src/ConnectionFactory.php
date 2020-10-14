@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,9 +15,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager;
+namespace Biurad\FileManager;
 
-use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
+use Biurad\FileManager\Interfaces\FlyAdapterInterface;
 use InvalidArgumentException;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
@@ -41,7 +41,7 @@ class ConnectionFactory
      */
     public static function makeAdapter(array $config): AdapterInterface
     {
-        $name = $config['default'] ?? 'array';
+        $name       = $config['default'] ?? 'array';
         $connection = new Config($config['connection'] ?? []);
 
         if ($name instanceof FlyAdapterInterface) {

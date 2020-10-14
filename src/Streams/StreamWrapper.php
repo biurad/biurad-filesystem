@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,10 +15,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager\Streams;
+namespace Biurad\FileManager\Streams;
 
-use BiuradPHP\FileManager\Interfaces\FlysystemMapInterface;
-use BiuradPHP\FileManager\Streams\StreamMode;
+use Biurad\FileManager\Interfaces\FlysystemMapInterface;
 use InvalidArgumentException;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,12 +15,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager;
+namespace Biurad\FileManager;
 
-use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
-use BiuradPHP\FileManager\Interfaces\StreamableInterface;
-use BiuradPHP\FileManager\Interfaces\StreamInterface as FlyStreamInterface;
-use BiuradPHP\FileManager\Plugin\ListDirectories;
+use Biurad\FileManager\Interfaces\FlysystemInterface;
+use Biurad\FileManager\Interfaces\StreamableInterface;
+use Biurad\FileManager\Interfaces\StreamInterface as FlyStreamInterface;
+use Biurad\FileManager\Plugin\ListDirectories;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Cached\CachedAdapter;

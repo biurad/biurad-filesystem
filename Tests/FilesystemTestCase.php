@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -30,10 +30,10 @@ declare(strict_types=1);
  * @since     Version 0.1
  */
 
-namespace BiuradPHP\FileManager\Tests;
+namespace Biurad\FileManager\Tests;
 
-use BiuradPHP\FileManager\FileManager;
-use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
+use Biurad\FileManager\FileManager;
+use Biurad\FileManager\Interfaces\FlysystemInterface;
 use Closure;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;

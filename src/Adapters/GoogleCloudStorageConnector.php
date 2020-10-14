@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,14 +15,14 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager\Adapters;
+namespace Biurad\FileManager\Adapters;
 
-use BiuradPHP\FileManager\Interfaces\FlyAdapterInterface;
+use Biurad\FileManager\Interfaces\FlyAdapterInterface;
 use Google\Cloud\Storage\StorageClient;
 use InvalidArgumentException;
-use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
 
 /**
  * This is the gcs connector class.
@@ -42,7 +42,7 @@ class GoogleCloudStorageConnector implements FlyAdapterInterface
     {
         $client = $this->getClient($config);
 
-        $bucket = $client->bucket($this->get($config, 'bucket'));
+        $bucket  = $client->bucket($this->get($config, 'bucket'));
         $adapter = new GoogleStorageAdapter($client, $bucket);
 
         if ($config->has('prefix')) {

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of BiuradPHP opensource projects.
+ * This file is part of Biurad opensource projects.
  *
  * PHP version 7.1 and above required
  *
@@ -15,16 +15,16 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace BiuradPHP\FileManager\Streams;
+namespace Biurad\FileManager\Streams;
 
-use BiuradPHP\FileManager\Exception\WrapperException;
-use BiuradPHP\FileManager\Interfaces\FlysystemInterface;
-use BiuradPHP\FileManager\Interfaces\StreamInterface;
+use Biurad\FileManager\Exception\WrapperException;
+use Biurad\FileManager\Interfaces\FlysystemInterface;
+use Biurad\FileManager\Interfaces\StreamInterface;
 use Exception;
-use League\Flysystem\Util;
 use League\Flysystem\Adapter\Local as FlyLocal;
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\FileNotFoundException;
+use League\Flysystem\Util;
 use LogicException;
 use SplFileObject;
 
@@ -46,7 +46,7 @@ class FlyStreamBuffer implements StreamInterface
 
     /**
      * @param FlysystemInterface $filesystem The filesystem managing the file to stream
-     * @param string               $key        The file key
+     * @param string             $key        The file key
      */
     public function __construct(FlysystemInterface $filesystem, $key)
     {
