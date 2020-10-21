@@ -28,8 +28,8 @@ $driver = new League\Flysystem\Adapter\Local(getcwd());
 When using the `local` driver, all file operations are relative to the `root` directory defined in your driver's construct. Let's say if the value is set to the `storage/` directory. Therefore, the following method would store a file in `storage/file.txt`:
 
 ```php
-use BiuradPHP\FileManager\FileManager;
-use BiuradPHP\FileManager\Config\FileConfig;
+use Biurad\FileManager\FileManager;
+use Biurad\FileManager\Config\FileConfig;
 
 $filesystem = new FileManager($driver, new FileConfig()); // $driver from the previous
 
@@ -41,7 +41,7 @@ To enable caching for a given disk, you may wrap driver in the `League\Flysystem
 ```php
 use League\Flysystem\Cached\CachedAdapter;
 use League\Flysystem\Cached\Storage\Memory;
-use BiuradPHP\FileManager\Config\FileConfig;
+use Biurad\FileManager\Config\FileConfig;
 
 $caching = new CachedAdapter($driver, new Memory());
 $filesystem = new FileManager($caching, new FileConfig()); // $driver from the previous
